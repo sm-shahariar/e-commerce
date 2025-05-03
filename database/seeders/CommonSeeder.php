@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Product;
+use App\Models\ProductAttribute;
 use App\Models\SubCategory;
 use App\Models\Category;
 use Illuminate\Support\Facades\Hash;
@@ -36,6 +36,11 @@ class CommonSeeder extends Seeder
             'slug' => 'shirts',
             'status' => 1,
             'category_id' => 1,
+        ]);
+
+
+        ProductAttribute::create([
+            'name' => 'Size'
         ]);
 
     }

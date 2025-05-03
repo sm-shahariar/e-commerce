@@ -2,7 +2,6 @@
     <thead>
         <tr>
             <th class="no-sort">SL</th>
-            <th>Attribute</th>
             <th>Attribute Value</th>
             <th>Created On</th>
             <th class="no-sort">Action</th>
@@ -14,12 +13,11 @@
                 <td>
                     {{ $loop->iteration + $productAttributeValues->firstItem() - 1 }}
                 </td>
-                <td>{{ $productAttributeValue->productAttribute->name }}</td>
                 <td>
-                    <div class="d-flex flex-wrap gap-2" style="max-height: 50px; overflow-y: auto;">
-                        <span class="badge bg-light text-dark d-flex align-items-center">
-                            <span class="me-2" style="width: 8px; height: 8px; background: red; border-radius: 50%;"></span>
-                            {{ $productAttributeValue->value }}
+                    <div class="d-flex flex-wrap gap-2 ">
+                        <span class="badge bg-light text-dark d-flex align-items-center font-bold">
+                            <span class="me-2" style="width: 8px; height: 8px; background: red; border-radius: 50%; "></span>
+                            <span style="font-size: 15px !important;">{{ $productAttributeValue->value }}</span>
                         </span>
                     </div>
                 </td>
@@ -64,29 +62,9 @@
                                         @method('PUT')
 
                                         <div class="mb-3">
-                                            <label class="form-label">Attributes*</label>
-                                            <select name="product_attribute_id" class="form-control select">
-                                                <option value="">Select Attribute</option>
-                                                @foreach ($productAttributes as $productAttribute)
-                                                    <option value="{{ $productAttribute->id }}"
-                                                        {{ $productAttribute->id == $productAttributeValue->product_attribute_id ? 'selected' : '' }}>
-                                                        {{ $productAttribute->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-
-                                        <div class="mb-3">
                                             <label class="form-label">Attribute Value*</label>
-                                            <div class="input-group mb-2">
-                                                <input type="text" name="value[]" class="form-control" value="{{ $productAttributeValue->value }}">
-                                                <button type="button" class="btn btn-primary" onclick="addEditValueField({{ $productAttributeValue->id }})">Add</button>
-                                            </div>
-                                            <div id="edit-values-container-{{ $productAttributeValue->id }}">
-                                                <!-- Additional value fields can be added here -->
-                                            </div>
+                                            <input type="text" id="value_input" name="value" value="{{ $productAttributeValue->value }}" class="form-control">
                                         </div>
-
                                         <div class="modal-footer-btn">
                                             <button type="button" class="btn btn-cancel me-2" data-bs-dismiss="modal">Cancel</button>
                                             <button type="submit" class="btn btn-submit">Update</button>
