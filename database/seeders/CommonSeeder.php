@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\ProductAttribute;
 use App\Models\SubCategory;
 use App\Models\Category;
+use App\Models\ProductAttributeValue;
 use Illuminate\Support\Facades\Hash;
 
 class CommonSeeder extends Seeder
@@ -41,6 +42,26 @@ class CommonSeeder extends Seeder
 
         ProductAttribute::create([
             'name' => 'Size'
+        ]);
+
+        ProductAttribute::create([
+            'name' => 'Color'
+        ]);
+
+        ProductAttributeValue::create([
+            'value' => 'Small',
+        ]);
+
+        ProductAttributeValue::create([
+            'value' => 'Red',
+        ]);
+
+        ProductAttributeValue::create([
+            'value' => 'Green',
+        ]);
+
+        ProductAttributeValue::create([
+            'value' => 'Black',
         ]);
 
     }
