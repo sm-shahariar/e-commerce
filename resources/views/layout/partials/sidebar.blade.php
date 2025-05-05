@@ -7,11 +7,15 @@
                     <li class="submenu-open">
                         <h6 class="submenu-hdr">Quick Actions</h6>
                         <ul>
-                                <li><a href="#"><i data-feather="plus"></i><span>Add
+                                <li><a href="{{ route('admin.products.create') }}"><i data-feather="plus"></i><span>Add
                                             Product</span></a></li>
 
-                                <li><a href="#"><i data-feather="shopping-cart"></i><span>Add
+                                <li><a href="{{ route('admin.categories.create') }}"><i data-feather="shopping-cart"></i><span>Add
                                             Category</span></a></li>
+
+                                <li><a href="{{ route('admin.product-variants.create') }}"><i data-feather="shopping-cart"></i><span>
+                                            Add Product Variant</span></a></li>
+
 
                         </ul>
                     </li>
@@ -40,11 +44,11 @@
 
                 {{-- Purchases --}}
                     <li class="submenu-open">
-                        <h6 class="submenu-hdr">Purchases</h6>
+                        <h6 class="submenu-hdr">Product Variant</h6>
                         <ul>
-                            <li class=""><a
-                                    href="#"><i
-                                        data-feather="shopping-bag"></i><span>Purchases</span></a></li>
+                            <li class="{{ Request::is('product-variants') ? 'active' : '' }}"><a
+                                    href="{{ route('admin.product-variants.index') }}"><i
+                                        data-feather="shopping-bag"></i><span>Product Variant</span></a></li>
                         </ul>
                     </li>
 

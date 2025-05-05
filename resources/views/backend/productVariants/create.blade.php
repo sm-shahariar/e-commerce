@@ -2,7 +2,7 @@
 @section('content')
 <div class="page-wrapper">
     <div class="content">
-    <x-breadcrumb title="Product Variant Create" button="Back to Product Variants" back-button-route="admin.product-variants.index" />
+    <x-breadcrumb title="Create Product Variant" button="Back to Product Variants" back-button-route="admin.product-variants.create" />
 
 
         <div class="card">
@@ -105,6 +105,7 @@
 
 @push('scripts')
 <script>
+    
     $(document).ready(function() {
         $('.select2').select2({ placeholder: 'Select an option', allowClear: true });
 

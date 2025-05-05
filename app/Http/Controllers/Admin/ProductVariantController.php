@@ -171,6 +171,7 @@ class ProductVariantController extends Controller
                     $variantAttributeValue->delete();
                 }
             }
+            
 
             // Step 3: Insert records that do NOT exist
             foreach ($inputAttributes as $attr) {
