@@ -24,6 +24,11 @@ class Product extends Model
     {
         return $this->belongsTo(SubCategory::class);
     }
+
+    public function OrderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
     
 
     public function setThumbnailAttribute($file)
