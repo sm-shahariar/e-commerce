@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+            // $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
             $table->string('order_number')->unique();
             $table->string('note')->nullable();
             $table->enum('status', [1,2,3])->default(1)->comment('1=pending, 2=completed, 3=cancelled');
