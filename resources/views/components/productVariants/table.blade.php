@@ -22,9 +22,9 @@
                         <a href="javascript:void(0);">{{ $productVariant->product->name }}</a>
                     </div>
                 </td>
-                <td>{{ $productVariant->sku }}</td>
                 <td>৳ {{ $productVariant->price }}</td>
                 <td>{{ $productVariant->qty }}</td>
+                <td>{{ $productVariant->sku }}</td>
                 <td class="action-table-data">
                     <div class="edit-delete-action">
                         <a class="me-2 edit-icon  p-2" href="#"
