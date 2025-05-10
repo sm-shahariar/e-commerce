@@ -20,7 +20,7 @@ class ProductVariantController extends Controller
 
         $productVariants = (new FetchProductVariant)->execute($request);
         $products = Product::all();
-        $variantValues = ProductVariantValue::with('productAttributeValue', 'productAttribute')->get();
+        $variantValues = VariantAttributeValue::with('productAttributeValue', 'productAttribute')->get();
 
         if ($request->ajax()) {
             return view('components.productVariants.table', ['productVariants' => $productVariants, 'products' => $products, 'variantValues' => $variantValues ]);
