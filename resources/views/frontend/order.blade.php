@@ -9,7 +9,7 @@
         <!-- Breadcrumbs -->
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb bg-transparent p-0">
-                <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                 <li class="breadcrumb-item"><a href="{{ url('sub-products') }}">Products</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Order</li>
             </ol>
@@ -23,36 +23,49 @@
             <div class="col-lg-6 mb-4 mb-lg-0">
                 <div class="card shadow-sm">
                     <div class="card-header bg-gradient-primary text-white text-center">
-                        <h4 class="card-title mb-0">Product Details</h4>
+                        <h4 class="card-title mb-0 text-white">Product Details</h4>
                     </div>
                     <div class="card-body">
                         <!-- Product Thumbnail -->
-                        <div class="card-img-wrapper text-center mb-4">
-                            <img src="{{ asset('images/product-placeholder.jpg') }}" alt="Product Thumbnail" class="card-img-top">
-                            <a href="#" class="details-icon"><i class="fas fa-info-circle"></i></a>
-                        </div>
-                        <!-- Product Name -->
-                        <h5 class="card-title text-center mb-3">Casual Shirt</h5>
+                    <div class="card-img-wrapper text-center mb-4">
+                       
+                        <img src="{{ $product->thumbnail }}" alt="" class="card-img-top">
+                        <!-- <a href="{{ route('product.details', $product->id) }}" class="details-icon"><i class="fas fa-info-circle"></i></a> -->
+                    </div>
+                    <!-- Product Name -->
+                    <h5 class="card-title text-center mb-3">{{ ($product->name) }}</h5>
+
                         <!-- Color Selection -->
+                        @if(is_array($groupedVariants) ? array_key_exists('color', $groupedVariants) : $groupedVariants->has('color'))
                         <div class="mb-3">
                             <label class="form-label"><i class="fas fa-palette me-2"></i>Select Color</label>
                             <div class="d-flex gap-2">
-                                <button type="button" class="color-swatch swatch-red active" data-color="Red" title="Red"></button>
-                                <button type="button" class="color-swatch swatch-blue" data-color="Blue" title="Blue"></button>
-                                <button type="button" class="color-swatch swatch-black" data-color="Black" title="Black"></button>
-                                <button type="button" class="color-swatch swatch-white" data-color="White" title="White"></button>
+                            @foreach($groupedVariants['color'] as $variant)
+                                <button type="button" class="color-swatch {{ $loop->first ? 'active' : '' }}"
+                                        data-color="{{ $variant->productAttributeValue->value }}"
+                                        title="{{ $variant->productAttributeValue->value }}"
+                                        style="background-color: {{ $variant->productAttributeValue->value }};">
+                                </button>
+                            @endforeach
                             </div>
                         </div>
-                        <!-- Size Selection -->
+                    @endif
+
+                    <!-- Size Selection -->
+                    @if(is_array($groupedVariants) ? array_key_exists('size', $groupedVariants) : $groupedVariants->has('size'))
                         <div class="mb-3">
                             <label class="form-label"><i class="fas fa-ruler me-2"></i>Select Size</label>
                             <div class="d-flex gap-2 flex-wrap">
-                                <button type="button" class="variant-btn active" data-size="S">S</button>
-                                <button type="button" class="variant-btn" data-size="M">M</button>
-                                <button type="button" class="variant-btn" data-size="L">L</button>
-                                <button type="button" class="variant-btn" data-size="XL">XL</button>
+                                @foreach($groupedVariants['size'] as $variant)
+                                    <button type="button" class="variant-btn {{ $loop->first ? 'active' : '' }}" 
+                                            data-size="{{ $variant->productAttributeValue->value }}">
+                                        {{ $variant->productAttributeValue->value }}
+                                    </button>
+                                @endforeach
                             </div>
                         </div>
+                    @endif
+
                         <!-- Quantity Selection -->
                         <div class="mb-3">
                             <label class="form-label"><i class="fas fa-shopping-cart me-2"></i>Quantity</label>
@@ -62,11 +75,20 @@
                                 <button type="button" class="btn btn-outline-secondary" id="increase-quantity">+</button>
                             </div>
                         </div>
+
                         <!-- Price Display -->
                         <div class="text-center">
-                            <h4 class="card-text product-price" id="total-price">$29.99</h4>
+                            <h4 class="card-text product-price" id="total-price">
+                            ৳{{
+                                    $variants->isNotEmpty() && $variants->first()->productVariant
+                                        ? $variants->first()->productVariant->price
+                                        : ($product->price ?? '0.00')
+                                }}
+                            </h4>
                             <small class="text-muted">Price updates dynamically</small>
                         </div>
+
+
                         <!-- Action Buttons -->
                         <div class="card-actions mt-3">
                             <a href="#" class="wishlist-icon" title="Add to Wishlist"><i class="fas fa-heart"></i></a>
@@ -80,10 +102,10 @@
             <div class="col-lg-6">
                 <div class="card shadow-sm">
                     <div class="card-header bg-gradient-primary text-white text-center">
-                        <h4 class="card-title mb-0">Shipping Information</h4>
+                        <h4 class="card-title mb-0 text-white">Shipping Information</h4>
                     </div>
                     <div class="card-body">
-                        <form id="order-form" action="#" method="POST">
+                        <form id="order-form" action="{{ route('orders.store') }}" method="POST">
                             @csrf
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -103,7 +125,7 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="postcode" class="form-label"><i class="fas fa-map-pin me-2"></i>Postcode</label>
-                                    <input type="text" class="form-control" id="postcode" name="postcode" pattern="[0-9]{4,6}" required>
+                                    <input type="text" class="form-control" id="zip" name="zip" pattern="[0-9]{4,6}" required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                                 <div class="col-12 mb-3">
@@ -114,7 +136,7 @@
                         </div>
                     </div>
                     <div class="text-center">
-                        <button type="submit" class="btn btn-primary btn-lg glow-btn">Place Order</button>
+                        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg glow-btn">Place Order</button>
                     </div>
                 </form>
             </div>
@@ -126,25 +148,32 @@
 
 
 
+
 @push('scripts')
 
 <script>
     $(document).ready(function () {
         // Initialize Toastr options
         toastr.options = {
-            closeButton: true,
+            closeButton: false,
             progressBar: true,
             positionClass: 'toast-top-right',
             timeOut: 3000
         };
 
         // Price Calculation
-        const basePrice = 29.99;
+        const basePrice = @json(
+            $variants->isNotEmpty() && $variants->first()->productVariant
+                ? $variants->first()->productVariant->price
+                : ($product->price ?? 0)
+        );
+
         function updatePrice() {
             const quantity = parseInt($('#quantity').val()) || 1;
             const total = (basePrice * quantity).toFixed(2);
-            $('#total-price').text(`$${total}`);
+            $('#total-price').text(`৳${total}`);
         }
+
 
         // Quantity Controls
         $('#increase-quantity').click(function () {
@@ -177,6 +206,12 @@
             $(this).addClass('active');
         });
 
+        // Color Visible
+        $('.color-swatch').each(function () {
+            const color = $(this).data('color');
+            $(this).css('background-color', color);
+        });
+
         $('.variant-btn').click(function () {
             $('.variant-btn').removeClass('active');
             $(this).addClass('active');
@@ -189,62 +224,79 @@
         });
 
         // Form Submission with AJAX
-        $('#order-form').on('submit', function (e) {
-            e.preventDefault();
-            let isValid = true;
-            const $form = $(this);
-            const $submitBtn = $form.find('button[type="submit"]');
-            $submitBtn.prop('disabled', true);
+       $('#order-form').on('submit', function (e) {
+        e.preventDefault();
+        let isValid = true;
+        const $form = $(this);
+        const $submitBtn = $('#submit-btn');
+        $submitBtn.prop('disabled', false);
 
-            // Validate fields
-            const fields = [
-                { id: 'name', message: 'Name is required' },
-                { id: 'email', message: 'Valid email is required', pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
-                { id: 'phone', message: 'Valid phone number (10-15 digits) is required', pattern: /^[0-9]{10,15}$/ },
-                { id: 'postcode', message: 'Valid postcode (4-6 digits) is required', pattern: /^[0-9]{4,6}$/ },
-                { id: 'address', message: 'Address is required' }
-            ];
+        // Validate inputs...
+        const fields = [
+            { id: 'name', message: 'Name is required' },
+            { id: 'email', message: 'Valid email is required', pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+            { id: 'phone', message: 'Valid phone number (10-15 digits) is required', pattern: /^[0-9]{10,15}$/ },
+            { id: 'zip', message: 'Valid postcode (4-6 digits) is required', pattern: /^[0-9]{4,6}$/ },
+            { id: 'address', message: 'Address is required' }
+        ];
 
-            fields.forEach(field => {
-                const $input = $(`#${field.id}`);
-                const value = $input.val().trim();
-                if (!value) {
-                    $input.addClass('is-invalid').next('.invalid-feedback').text(field.message);
-                    isValid = false;
-                } else if (field.pattern && !field.pattern.test(value)) {
-                    $input.addClass('is-invalid').next('.invalid-feedback').text(field.message);
-                    isValid = false;
-                }
-            });
+        fields.forEach(field => {
+            const $input = $(`#${field.id}`);
+            const value = $input.val().trim();
+            if (!value) {
+                $input.addClass('is-invalid').next('.invalid-feedback').text(field.message);
+                isValid = false;
+            } else if (field.pattern && !field.pattern.test(value)) {
+                $input.addClass('is-invalid').next('.invalid-feedback').text(field.message);
+                isValid = false;
+            }
+        });
 
-            if (isValid) {
-                $.ajax({
-                    url: $form.attr('action'),
-                    method: 'POST',
-                    data: $form.serialize() + '&color=' + $('.color-swatch.active').data('color') +
-                          '&size=' + $('.variant-btn.active').data('size') +
-                          '&quantity=' + $('#quantity').val() +
-                          '&total_price=' + $('#total-price').text().replace('$', ''),
-                    success: function (response) {
-                        toastr.success('Order placed successfully!');
-                        $form[0].reset();
-                        $('.color-swatch').removeClass('active').first(). добавитьClass('active');
-                        $('.variant-btn').removeClass('active').first().addClass('active');
-                        $('#quantity').val(1);
-                        updatePrice();
-                    },
-                    error: function (xhr) {
-                        toastr.error('An error occurred. Please try again.');
-                    },
-                    complete: function () {
-                        $submitBtn.prop('disabled', false);
-                    }
-                });
-            } else {
-                toastr.error('Please fix the errors in the form.');
+        if (!isValid) {
+            toastr.error('Please fix the errors in the form.');
+            $submitBtn.prop('disabled', false);
+            return;
+        }
+
+        // Build form data manually
+        const postData = {
+            name: $('#name').val(),
+            email: $('#email').val(),
+            phone: $('#phone').val(),
+            zip: $('#zip').val(), // fix here
+            address: $('#address').val(),
+            quantity: $('#quantity').val(),
+            price: (basePrice * $('#quantity').val()).toFixed(2), // fix here
+            product_id: '{{ $product->id }}',
+            product_variant_id: '{{ $variants->first()->productVariant->id ?? null }}'
+        };
+
+
+        $.ajax({
+            url: $form.attr('action'),
+            type: 'POST',
+            data: postData,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function (response) {
+                toastr.success('Order placed successfully!');
+                $form[0].reset();
+                $('.color-swatch').removeClass('active').first().addClass('active');
+                $('.variant-btn').removeClass('active').first().addClass('active');
+                $('#quantity').val(1);
+                updatePrice();
+            },
+            error: function (xhr) {
+                 console.log(xhr);
+                toastr.error('An error occurred. Please try again.');
+            },
+            complete: function () {
                 $submitBtn.prop('disabled', false);
             }
         });
+    });
+
 
         // Wishlist and Cart Icon Actions
         $('.wishlist-icon').click(function (e) {
