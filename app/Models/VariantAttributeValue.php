@@ -17,4 +17,9 @@ class VariantAttributeValue extends Model
     {
         return $this->belongsTo(ProductAttribute::class);
     }
+
+    public function productVariant()
+    {
+        return $this->belongsTo(ProductVariant::class);
+    }
 }
