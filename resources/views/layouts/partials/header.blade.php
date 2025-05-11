@@ -23,7 +23,7 @@
             <div class="col-3 col-md-4 text-end">
                 <div class="d-flex justify-content-end align-items-center">
                     <!-- Wishlist Icon -->
-                    <a href="{{ url('wishlist') }}" class="text-light me-4" title="Wishlist">
+                    <a href="{{ route('wishlist.index') }}" class="text-light me-4" title="Wishlist">
                         <i class="fa fa-heart fa-lg"></i>
                     </a>
 

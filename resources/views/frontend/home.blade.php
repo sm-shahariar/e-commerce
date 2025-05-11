@@ -16,7 +16,7 @@
                 <div class="col">
                     <div class="card h-100 shadow-sm small-card">
                         <div class="card-img-wrapper position-relative">
-                        <img src="{{ asset('build/images/product1.jpg') }}" class="card-img-top" alt="{{ $product->name }}">
+                        <img src="{{ $product->thumbnail }}" class="card-img-top" alt="{{ $product->name }}">
                         <a href="{{ url('product-details/' . $product->id) }}" class="details-icon">
                             <i class="fas fa-info-circle">
                             </i></a>
@@ -29,9 +29,14 @@
                                     <i class="fa fa-shopping-cart"></i>
                                 </a>
                                 <a href="{{ route('product.order', $product->id) }}" class="btn btn-primary btn-xs">Order Now</a>
-                                <a href="#" class="btn btn-outline-secondary btn-xs" title="Add to Wishlist">
-                                    <i class="fa fa-heart"></i>
-                                </a>
+                                <form action="{{ route('wishlist.store', $product->id) }}" method="POST" class="wishlist-form" data-product-id="{{ $product->id }}" style="display:inline;">
+                                    @csrf
+                                    <input type="hidden" name="user_id" value="{{ auth()->id() }}">
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <button type="submit" class="btn btn-outline-secondary btn-xs" title="Add to Wishlist">
+                                        <i class="fa fa-heart"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -53,9 +58,9 @@
                         <div class="col">
                             <div class="card h-100 shadow-sm">
                                 <div class="card-img-wrapper position-relative">
-                                    <img src="{{ asset('build/images/product1.jpg') }}" class="card-img-top" alt="{{ $newProduct->name }}">
-                                    <a href="#" class="details-icon" title="View Details">
-                                        <i class="fa fa-eye"></i>
+                                    <img src="{{ $newProduct->thumbnail }}" class="card-img-top" alt="{{ $newProduct->name }}">
+                                    <a href="{{ url('product-details/' . $newProduct->id) }}" class="details-icon" title="View Details">
+                                        <i class="fas fa-info-circle"></i>
                                     </a>
                                 </div>
                                 <div class="card-body text-center">
@@ -90,9 +95,9 @@
                <div class="col">
                     <div class="card h-100 shadow-sm">
                         <div class="card-img-wrapper position-relative">
-                            <img src="build/images/product5.jpg" class="card-img-top" alt="Product 5">
-                            <a href="#" class="details-icon" title="View Details">
-                                <i class="fa fa-eye"></i>
+                            <img src="{{ $mostSoldProduct->thumbnail }}" class="card-img-top" alt="Product 5">
+                            <a href="{{ url('product-details/' . $mostSoldProduct->id) }}" class="details-icon" title="View Details">
+                                <i class="fas fa-info-circle"></i>
                             </a>
                         </div>
                         <div class="card-body text-center">
@@ -128,9 +133,9 @@
                     <div class="col">
                     <div class="card h-100 shadow-sm">
                         <div class="card-img-wrapper position-relative">
-                            <img src="build/images/mens_product1.jpg" class="card-img-top" alt="Men’s Shirt 1">
-                            <a href="#" class="details-icon" title="View Details">
-                                <i class="fa fa-eye"></i>
+                            <img src="{{ $menProduct->thumbnail }}" class="card-img-top" alt="Men’s Shirt 1">
+                            <a href="{{ url('product-details/' . $menProduct->id) }}" class="details-icon" title="View Details">
+                                <i class="fas fa-info-circle"></i>
                             </a>
                         </div>
                         <div class="card-body text-center">
@@ -165,9 +170,9 @@
                 <div class="col">
                     <div class="card h-100 shadow-sm">
                         <div class="card-img-wrapper position-relative">
-                            <img src="build/images/womens_product1.jpg" class="card-img-top" alt="Women’s Dress 1">
-                            <a href="#" class="details-icon" title="View Details">
-                                <i class="fa fa-eye"></i>
+                            <img src="{{ $womenProduct->thumbnail }}" class="card-img-top" alt="Women’s Dress 1">
+                            <a href="{{ url('product-details/' . $womenProduct->id) }}" class="details-icon" title="View Details">
+                                <i class="fas fa-info-circle"></i>
                             </a>
                         </div>
                         <div class="card-body text-center">
@@ -202,9 +207,9 @@
                     <div class="col">
                     <div class="card h-100 shadow-sm">
                         <div class="card-img-wrapper position-relative">
-                            <img src="build/images/kids_product1.jpg" class="card-img-top" alt="Kids’ T-Shirt 1">
-                            <a href="#" class="details-icon" title="View Details">
-                                <i class="fa fa-eye"></i>
+                            <img src="{{ $kidProduct->thumbnail }}" class="card-img-top" alt="Kids’ T-Shirt 1">
+                            <a href="{{ url('product-details/' . $kidProduct->id) }}" class="details-icon" title="View Details">
+                                <i class="fas fa-info-circle"></i>
                             </a>
                         </div>
                         <div class="card-body text-center">
@@ -229,3 +234,40 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+    <script>
+        $(document).ready(function () {
+            toastr.options = {
+                closeButton: false,
+                progressBar: true,
+                positionClass: 'toast-top-right',
+                timeOut: 3000
+            };
+
+            $('.wishlist-form').on('submit', function (e) {
+                e.preventDefault(); // Prevent default form submission
+
+                const form = $(this);
+                const button = form.find('button');
+                const icon = button.find('i');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        toastr.success('Product added to wishlist successfully');
+                        icon.addClass('text-danger'); // make heart red
+                        localStorage.setItem('wishlist_product_' + response.product_id, 'added');
+                        button.prop('disabled', true);
+                    },
+                    error: function () {
+                        toastr.error('Something went wrong');
+                    }
+                });
+            });
+        });
+    </script>
+
+@endpush
