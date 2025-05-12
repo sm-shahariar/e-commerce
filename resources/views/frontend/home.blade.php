@@ -25,9 +25,15 @@
                             <h6 class="card-title">{{ $product->name }}</h6>
                             <p class="card-text">৳{{ $product->price }}</p>
                             <div class="d-flex justify-content-center gap-1">
-                                <a href="#" class="btn btn-primary btn-xs" title="Add to Cart">
-                                    <i class="fa fa-shopping-cart"></i>
-                                </a>
+                                <!-- <a href="#" class="" title="Add to Cart">
+                                    <i class=""></i>
+                                </a> -->
+                                <form action="{{ route('cart.store', $product->id) }}" method="POST" class="cart-form" data-product-id="{{ $product->id }}" style="display:inline;">
+                                    @csrf
+                                    <button type="submit" class="btn btn-primary btn-xs" title="Add to Cart">
+                                        <i class="fa fa-shopping-cart"></i>
+                                    </button>
+                                </form>
                                 <a href="{{ route('product.order', $product->id) }}" class="btn btn-primary btn-xs">Order Now</a>
                                 <form action="{{ route('wishlist.store', $product->id) }}" method="POST" class="wishlist-form" data-product-id="{{ $product->id }}" style="display:inline;">
                                     @csrf

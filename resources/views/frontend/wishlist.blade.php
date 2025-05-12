@@ -137,28 +137,29 @@
         });
 
         // Clear Wishlist Button Click
-        $('.clear-wishlist').on('click', function (e) {
-            e.preventDefault();
-
-            $.ajax({
-                url: '/wishlists',
-                type: 'DELETE',
-                data: {
-                    _token: '{{ csrf_token() }}'
-                },
-                success: function (response) {
-                    toastr.success('All wishlist items removed!');
-                    // Reload the wishlist section by making an AJAX request
-                    setTimeout(function () {
-                        window.location.reload();
-                    }, 1000);
-                },
-                error: function (xhr) {
-                    toastr.error('Failed to clear wishlist.');
-                    console.error(xhr.responseText);
-                }
-            });
-        });
+       $('.clear-wishlist').on('click', function (e) {
+    e.preventDefault();
+    console.log('Clear Wishlist button clicked');
+    $.ajax({
+        url: '{{ route('wishlist.destroy') }}',
+        type: 'DELETE',
+        data: {
+            _token: '{{ csrf_token() }}'
+        },
+        success: function (response) {
+            console.log(response);
+            toastr.success(response.message || 'Wishlist cleared successfully!');
+            console.log('Wishlist cleared successfully');
+            setTimeout(function () {
+                window.location.reload();
+            }, 1000);
+        },
+        error: function (xhr) {
+            toastr.error('Failed to clear wishlist.');
+            console.error(xhr.responseText);
+        }
+    });
+});
 
         
     });
