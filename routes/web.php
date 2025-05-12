@@ -5,6 +5,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\WishlistController;
+use App\Http\Controllers\Admin\CartController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 Route::get('/', [DashboardController::class, 'index']
 )->middleware(['auth', 'verified'])->name('dashboard');
@@ -16,7 +18,14 @@ Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
 Route::get('/product-details/{id}', [HomeController::class, 'productDetails'])->name('product.details');
 Route::get('/wishlists', [WishlistController::class, 'index'])->name('wishlist.index');
 Route::post('/wishlists/{product}', [WishlistController::class, 'store'])->name('wishlist.store');
-Route::delete('/wishlists', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
+Route::delete('/wishlists-delete', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
+Route::get('/carts', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/{productId}', [CartController::class, 'store'])->name('cart.store');
+Route::patch('/cart/{id}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/{productId}', [CartController::class, 'destroy'])->name('cart.destroy');
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+
 
 
 
@@ -26,9 +35,9 @@ Route::get('/dashboard', function () {
 });
 
 
-Route::get('/carts', function () {
-    return view('frontend.cart');
-});
+// Route::get('/carts', function () {
+//     return view('frontend.cart');
+// });
 
 Route::get('/sub-products', function () {
     return view('frontend.product');
