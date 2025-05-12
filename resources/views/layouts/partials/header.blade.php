@@ -11,7 +11,7 @@
 
             <!-- Center: Search Bar -->
             <div class="col-6 col-md-6">
-                <form action="#" method="GET" class="d-flex">
+                <form action="{{ request()->url() }}" method="GET" class="d-flex" id="searchFilter">
                     <input type="text" name="query" class="form-control rounded-start" placeholder="Search products..." aria-label="Search">
                     <button type="submit" class="btn btn-primary rounded-end">
                         <i class="fa fa-search"></i>
@@ -48,7 +48,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <form action="#" method="POST">
+                                    <form action="{{ route('logout') }}" method="POST">
                                         @csrf
                                         <button type="submit" class="dropdown-item">
                                             <i class="fa fa-sign-out-alt me-2"></i> Logout
@@ -57,7 +57,7 @@
                                 </li>
                             
                                 <li>
-                                    <a class="dropdown-item" href="#">
+                                    <a class="dropdown-item" href="{{ url('login') }}">
                                         <i class="fa fa-sign-in-alt me-2"></i> Login
                                     </a>
                                 </li>
@@ -75,4 +75,49 @@
     </div>
 </header>
 
+@push('scripts')
+    <script>
+        $(document).ready(function() {
+            let form = $('#searchFilter');
+            let formAction = form.attr('action');
+
+            $('input[name="search"]').on('input', function() {
+                sendAjaxRequest();
+            });
+
+            $(document).on('change', '.filter-input', function() {
+                sendAjaxRequest();
+            });
+
+
+            $('input[name="search"]').on('keypress', function(e) {
+                if (e.which === 13) {
+                    e.preventDefault();
+                    sendAjaxRequest();
+                }
+            });
+
+            function sendAjaxRequest(url = formAction) {
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    data: form.serialize(),
+                    success: function(res) {
+                        let response = $(res);
+                        $('#dataTable').html(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX request failed.", error);
+                    }
+                });
+            }
+
+            $(document).on('click', '#pagination a', function(e) {
+                e.preventDefault();
+                let pageUrl = $(this).attr('href');
+                sendAjaxRequest(pageUrl);
+            });
+        });
+    </script>
+@endpush
 

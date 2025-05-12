@@ -44,10 +44,17 @@ class WishlistController extends Controller
 
    // In WishlistController.php
     public function destroy()
-    {
-        Wishlist::where('user_id', auth()->id())->delete();
-        return redirect()->back()->with('success', 'All wishlist items removed');
+{
+    Wishlist::where('user_id', auth()->id())->delete();
+
+    if (request()->ajax()) {
+        return response()->json([
+            'message' => 'All wishlist items removed'
+        ], 200);
     }
+
+    return redirect()->back()->with('success', 'All wishlist items removed');
+}
 
 
 }
