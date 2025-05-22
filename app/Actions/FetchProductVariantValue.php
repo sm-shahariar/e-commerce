@@ -2,18 +2,18 @@
 
 namespace App\Actions;
 
-use App\Models\ProductVariantValue;
+use App\Models\VariantAttribute;
 
 
-class FetchProductVariantValue
+class FetchVariantAttribute
 {
     public function execute($request) {
 
         $search = $request->input('search', '');
         $perPage = $request->input('per_page', 10);
 
-        return ProductVariantValue::query()
-            ->with('productVariant', 'productAttributeValue', 'productAttribute')
+        return VariantAttribute::query()
+            ->with('productVariant', 'AttributeValue', 'Attribute')
             ->when($search, function($query) use ($search) {
                 $query->where('product_variant_id', 'like', "%{$search}%")
                         ->orWhere('product_attribute_value_id', 'like', "%{$search}%")
