@@ -29,6 +29,10 @@ class Product extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function variantAttributes(){
+        return $this->hasMany(VariantAttribute::class);
+    }
     
 
     public function setThumbnailAttribute($file)
@@ -62,7 +66,10 @@ class Product extends Model
         return $this->getUrl('images');
     }
 
-
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
 
 
     

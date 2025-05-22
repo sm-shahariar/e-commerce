@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ProductVariant;
 use App\Actions\FetchProductVariant;
-use App\Models\ProductVariantValue;
-use App\Models\ProductAttributeValue;
-use App\Models\ProductAttribute;
+use App\Models\VariantAttribute;
+use App\Models\AttributeValue;
+use App\Models\Attribute;
 use App\Models\VariantAttributeValue;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -20,7 +20,7 @@ class ProductVariantController extends Controller
 
         $productVariants = (new FetchProductVariant)->execute($request);
         $products = Product::all();
-        $variantValues = VariantAttributeValue::with('productAttributeValue', 'productAttribute')->get();
+        $variantValues = VariantAttributeValue::with('value', 'variantAttribute')->get();
 
         if ($request->ajax()) {
             return view('components.productVariants.table', ['productVariants' => $productVariants, 'products' => $products, 'variantValues' => $variantValues ]);
@@ -31,27 +31,30 @@ class ProductVariantController extends Controller
 
 
     public function create() {
-
         $products = Product::all();
-        // $variantValues = ProductVariantValue::with('productAttributeValue', 'productAttribute')->get();
-        $attributeValues = ProductAttributeValue::all();
-        $attributes = ProductAttribute::all();
-        return view('backend.productVariants.create', compact('products', 'attributeValues', 'attributes'));
+        $attributes = Attribute::all();
+        return view('backend.productVariants.create', compact('products', 'attributes'));
     }
+
+    public function getValues($attributeId) {
+        $attributeValues = AttributeValue::where('attribute_id', $attributeId)->get();
+        return response()->json($attributeValues);
+    }
+
 
 
     public function store(Request $request)
     {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'sku' => 'required|string|max:255|unique:product_variants,sku',
-            'price' => 'required|numeric|min:0',
-            'qty' => 'nullable|integer|min:0',
-            'attributes' => 'required|array|min:1',
-            'attributes.*.attribute_id' => 'required|exists:product_attributes,id',
-            'attributes.*.attribute_value_id' => 'required|array|min:1',
-            'attributes.*.attribute_value_id.*' => 'required|exists:product_attribute_values,id',
-        ]);
+        // $request->validate([
+        //     'product_id' => 'required|exists:products,id',
+        //     'sku' => 'required|string|max:255|unique:product_variants,sku',
+        //     'price' => 'required|numeric|min:0',
+        //     'qty' => 'nullable|integer|min:0',
+        //     'attributes' => 'required|array|min:1',
+        //     'attributes.*.attribute_id' => 'required|exists:attributes,id',
+        //     'attributes.*.attribute_value_id' => 'required|array|min:1',
+        //     'attributes.*.attribute_value_id.*' => 'required|exists:attribute_values,id',
+        // ]);
 
         try {
             DB::beginTransaction();
@@ -64,24 +67,23 @@ class ProductVariantController extends Controller
                 'qty' => $request->qty ?? 0,
             ]);
 
-            // Insert into product_attribute_values_option table
             foreach ($request->input('attributes') as $attribute) {
-                $attributeValueIds = (array) $attribute['attribute_value_id']; // Cast to array in case it's not
 
-                foreach ($attributeValueIds as $valueId) {
-                    $option = DB::table('variant_attribute_values')->insert([
+                $variantAttribute = VariantAttribute::create([
                         'product_variant_id' => $variant->id,
-                        'product_attribute_id' => $attribute['attribute_id'],
-                        'product_attribute_value_id' => $valueId,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'attribute_id' => $attribute['attribute_id'],
                     ]);
-
-                    if (!$option) {
-                        throw new \Exception('Failed to insert attribute value option');
-                    }
+                    
+                foreach ($attribute['attribute_value_id'] as $value) {
+                     VariantAttributeValue::create([
+                        'product_variant_id' => $variant->id,
+                        'variant_attribute_id' => $variantAttribute->id,
+                        'attribute_value_id' => $value,
+                    ]);
                 }
             }
+
+            // Insert into product_variant_value table
 
             DB::commit();
 
@@ -104,12 +106,12 @@ class ProductVariantController extends Controller
     public function edit(ProductVariant $productVariant)
 {
     $products = Product::all();
-    $attributes = ProductAttribute::all();
-    $attributeValues = ProductAttributeValue::all();
+    $attributes = Attribute::all();
+    $attributeValues = AttributeValue::all();
 
     // Load attribute values related to the variant
-    $variantAttributes = DB::table('variant_attribute_values')
-        ->where('product_variant_id', $productVariant->id)
+    $variantAttributes = DB::table('product_variant_value')
+        ->where('product_variants_id', $productVariant->id)
         ->get()
         ->groupBy('product_attribute_id');
 
@@ -159,7 +161,7 @@ class ProductVariantController extends Controller
             }
 
             // Step 2: Delete records from DB that are NOT in input
-            $existingValues = VariantAttributeValue::where('product_variant_id', $productVariant->id)->get();
+            $existingValues = VariantAttribute::where('product_variants_id', $productVariant->id)->get();
 
             foreach ($existingValues as $variantAttributeValue) {
                 $inInput = collect($inputAttributes)->contains(function ($attr) use ($variantAttributeValue) {
@@ -175,14 +177,14 @@ class ProductVariantController extends Controller
 
             // Step 3: Insert records that do NOT exist
             foreach ($inputAttributes as $attr) {
-                $exists = VariantAttributeValue::where('product_variant_id', $productVariant->id)
+                $exists = VariantAttribute::where('product_variants_id', $productVariant->id)
                     ->where('product_attribute_id', $attr['attribute_id'])
                     ->where('product_attribute_value_id', $attr['value_id'])
                     ->exists();
 
                 if (!$exists) {
-                    VariantAttributeValue::create([
-                        'product_variant_id' => $productVariant->id,
+                    VariantAttribute::create([
+                        'product_variants_id' => $productVariant->id,
                         'product_attribute_id' => $attr['attribute_id'],
                         'product_attribute_value_id' => $attr['value_id'],
                     ]);
@@ -204,8 +206,6 @@ class ProductVariantController extends Controller
             ], 500);
         }
     }
-
-
 
 
 
