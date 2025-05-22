@@ -35,6 +35,7 @@
 
         <!-- Toastr -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 
         <!-- Scripts -->
@@ -44,7 +45,6 @@
 
 
             @include('layouts.partials.header')
-            @include('layouts.partials.navigation')
             @yield('content')
             @include('layouts.partials.footer')
 
@@ -52,7 +52,7 @@
 
 
 
-        
+
         <!-- Load jQuery First -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
@@ -60,7 +60,7 @@
          <!-- Toastr -->
          <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
          <!-- Bootstrap JS for tabs -->
-         <script src="{{ asset('build/js/bootstrap.bundle.min.js') }}"></script>         
+         <script src="{{ asset('build/js/bootstrap.bundle.min.js') }}"></script>
         <!-- Then stack any custom scripts -->
         @stack('scripts')
 
@@ -73,5 +73,26 @@
 
         <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
          crossorigin="anonymous"></script>
+
+          @if(session('success'))
+    <script>
+        toastr.success("{{ session('success') }}", 'Success!', {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 5000
+        });
+    </script>
+    @endif
+     @if(session('error'))
+    <script>
+        toastr.error("{{ session('error') }}", 'Error!', {
+            closeButton: true,
+            progressBar: true,
+            positionClass: 'toast-top-right',
+            timeOut: 5000
+        });
+    </script>
+    @endif
     </body>
 </html>

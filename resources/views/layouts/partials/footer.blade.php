@@ -1,66 +1,50 @@
-<!-- Creating a responsive footer with multiple sections -->
-<footer id="footer" class="bg-dark text-white py-5">
-    <div class="container">
-        <div class="row row-cols-1 row-cols-md-4 g-4">
-            <!-- About Us -->
-            <div class="col">
-                <h5 class="mb-3">About Us</h5>
-                <p class="text-light">
-                    {{ config('app.name', 'MyShop') }} is your one-stop destination for the latest in fashion, electronics, and more. Shop with confidence and discover amazing deals every day.
-                </p>
-            </div>
-            <!-- Quick Links -->
-            <div class="col">
-                <h5 class="mb-3">Quick Links</h5>
-                <ul class="list-unstyled">
-                    <li><a href="#" class="text-light text-decoration-none">Home</a></li>
-                    <li><a href="#" class="text-light text-decoration-none">Shop</a></li>
-                    <li><a href="#" class="text-light text-decoration-none">Categories</a></li>
-                    <li><a href="#" class="text-light text-decoration-none">Contact</a></li>
-                    <li><a href="#" class="text-light text-decoration-none">FAQ</a></li>
-                </ul>
-            </div>
-            <!-- Contact Info -->
-            <div class="col">
-                <h5 class="mb-3">Contact Info</h5>
-                <ul class="list-unstyled">
-                    <li class="mb-2">
-                        <i class="fa fa-map-marker me-2"></i> 1234 Street Name, City, Country
-                    </li>
-                    <li class="mb-2">
-                        <i class="fa fa-phone me-2"></i> +123-456-7890
-                    </li>
-                    <li class="mb-2">
-                        <i class="fa fa-envelope me-2"></i> support@{{ config('app.name', 'myshop') }}.com
-                    </li>
-                </ul>
-                <div class="social-icons mt-3">
-                    <a href="#" class="text-white me-3" title="Facebook">
-                        <i class="fa fa-facebook fa-lg"></i>
-                    </a>
-                    <a href="#" class="text-white me-3" title="Twitter">
-                        <i class="fa fa-twitter fa-lg"></i>
-                    </a>
-                    <a href="#" class="text-white me-3" title="Instagram">
-                        <i class="fa fa-instagram fa-lg"></i>
-                    </a>
+ <footer class="bg-dark text-white pt-5 pb-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <h5>ShopEase</h5>
+                    <p>Your one-stop online shop for all your needs.</p>
+                    <div class="social-icons">
+                        <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white me-2"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white text-decoration-none">Home</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">Shop</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">About Us</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">Contact</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">FAQ</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>Customer Service</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white text-decoration-none">My Account</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">Order Tracking</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">Returns & Refunds</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">Shipping Info</a></li>
+                        <li><a href="#" class="text-white text-decoration-none">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5>Contact Us</h5>
+                    <address>
+                        <p><i class="fas fa-map-marker-alt me-2"></i> 123 Main St, City, Country</p>
+                        <p><i class="fas fa-phone me-2"></i>01947116736</p>
+                        <p><i class="fas fa-envelope me-2"></i> info@shopease.com</p>
+                    </address>
                 </div>
             </div>
-            <!-- Newsletter -->
-            <div class="col">
-                <h5 class="mb-3">Newsletter</h5>
-                <p class="text-light">Subscribe to get the latest updates and exclusive offers.</p>
-                <form action="#" method="POST" class="d-flex">
-                    <input type="email" class="form-control rounded-start" placeholder="Your email" aria-label="Email">
-                    <button type="submit" class="btn btn-primary rounded-end">
-                        <i class="fa fa-paper-plane"></i>
-                    </button>
-                </form>
+            <hr class="mb-4">
+            <div class="row">
+                <div class="col-md-12 text-center text-md-center">
+                    <p>&copy; {{ date('Y') }} ShopEase. All rights reserved.</p>
+                </div>
             </div>
         </div>
-        <!-- Copyright -->
-        <div class="text-center mt-5 pt-3 border-top border-secondary">
-            <p class="text-light mb-0">&copy; {{ date('Y') }} Shahariar. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
+    </footer>

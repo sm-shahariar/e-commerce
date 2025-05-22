@@ -6,13 +6,13 @@
 
     <!-- Logo -->
     <div class="header-left active">
-        <a href="{{ route('dashboard') }}" class="logo logo-normal">
+        <a href="{{ route('admin.dashboard') }}" class="logo logo-normal">
             <img src="{{ URL::asset('build/img/logo.png') }}" alt="" class="ms-2 p-2">
         </a>
-        <a href="{{ route('dashboard') }}" class="logo logo-white">
+        <a href="{{ route('admin.dashboard') }}" class="logo logo-white">
             <img src="{{ URL::asset('/build/img/logo-white.png') }}" alt="">
         </a>
-        <a href="{{ route('dashboard') }}" class="logo-small">
+        <a href="{{ route('admin.dashboard') }}" class="logo-small">
             <img src="{{ URL::asset('/build/img/logo-small.png') }}" alt="">
         </a>
         <a id="toggle_btn" href="javascript:void(0);">

@@ -5,7 +5,7 @@
             <ul class="main-nav nav navbar-nav d-flex flex-row flex-nowrap">
                 <!-- Home -->
                 <li class="nav-item">
-                    <a class="nav-link text-white active" href="{{ url('/home') }}">Home</a>
+                    <a class="nav-link text-white active" href="{{ route('home') }}">Home</a>
                 </li>
                 <!-- Hot Deals Dropdown -->
                 <li class="nav-item dropdown">

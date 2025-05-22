@@ -21,7 +21,7 @@
                     </li>
 
                 <li class="{{ Request::is('/') ? 'active' : '' }}">
-                    <a href="{{ route('dashboard') }}"><i data-feather="home"></i><span>Dashboard</span></a>
+                    <a href="{{ route('admin.dashboard') }}"><i data-feather="home"></i><span>Dashboard</span></a>
                 </li>
 
                 {{-- Calendar --}}
