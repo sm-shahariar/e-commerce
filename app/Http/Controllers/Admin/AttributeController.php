@@ -3,76 +3,88 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Actions\FetchProductAttributes;
-use App\Models\ProductAttribute;
-use App\Models\ProductAttributeValue;
+use App\Models\Attribute;
+use App\Actions\FetchAttributes;
+use App\Models\AttributeValue;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class AttributeController extends Controller
 {
     public function index(Request $request) {
 
-        $productAttributes = (new FetchProductAttributes)->execute($request);
-        // $attributeValues = ProductAttributeValue::select('id', 'value')->get();
+        $attribute_list = (new FetchAttributes)->execute($request);
 
         if ($request->ajax()) {
-            return view('components.productAttributes.table',['productAttributes' => $productAttributes])->render();
+            return view('components.Attributes.table', ['attribute_list' => $attribute_list])->render();
         }
-        return view('backend.productAttributes.index', compact('productAttributes'));
-        
+        return view('backend.Attributes.index', compact('attribute_list'));
     }
-
 
     public function store(Request $request) {
+
         $request->validate([
-            'name' => 'required|string|max:255|unique:product_attributes,name',
+            'name' => 'required|string|max:255',
+            'attribute_values' => 'required|array',
+            'attribute_values.*' => 'required|string|max:255',
+           
         ]);
 
         try{
-
             DB::beginTransaction();
-            $attribute = ProductAttribute::create([
+
+           
+
+            $attribute =Attribute::create([
+                'name' => $request->name,
+            ]);
+
+            $index = 1;
+            //dd($request->input('attribute_values'));
+            foreach ($request->input('attribute_values') as $value) {
+
+                
+                AttributeValue::create([
+                    'attribute_id' => $attribute->id,
+                    'name' => $value,
+                ]);
+
+                \Log::info('loop : '. $index);
+                $index++;
+            }
+
+
+            DB::commit();
+            return response()->json(['message' => 'Product Attribute Created Successfully', 'type' => 'success'], 200);
+        }catch(\Throwable $th){
+            DB::rollBack();
+            return response()->json(['message' => $th->getMessage(), 'type' => 'error'], 500);
+        }
+    }
+    public function update(Request $request, Attribute $Attribute) {
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        try{
+            DB::beginTransaction();
+
+            $Attribute->update([
                 'name' => $request->name,
             ]);
 
             DB::commit();
-            return response()->json(['type' => 'success', 'message' => 'Attribute created successfully.'], 200);
-
-        }catch(\Throwable $th) {
+            return response()->json(['message' => 'Product Attribute Updated Successfully', 'type' => 'success'], 200);
+        }catch(\Throwable $th){
             DB::rollBack();
-            return response()->json(['type' => 'error', 'message' => $th->getMessage()],500);
+            return response()->json(['message' => $th->getMessage(), 'type' => 'error'], 500);
         }
     }
 
+    public function destroy(Attribute $Attribute) {
 
-    public function update(Request $request, ProductAttribute $attribute) {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:product_attributes,name,'.$attribute->id,
-        ]);
-
-        try{
-
-            DB::beginTransaction();
-            $attribute->update([
-                'name' => $request->name,
-            ]);
-
-            DB::commit();
-            return response()->json(['type' => 'success', 'message' => 'Attribute updated successfully.'], 200);
-
-        }catch(\Throwable $th) {
-            DB::rollBack();
-            return response()->json(['type' => 'error', 'message' => $th->getMessage()],500);
-        }
+        $Attribute->delete();
+        return redirect()->back()->with('success', 'Product Attribute Deleted Successfully');
     }
-
-
-    public function destroy(ProductAttribute $attribute) {
-
-        $attribute->delete();
-        // return response()->json(['type' => 'success', 'message' => 'Attribute deleted successfully.'], 200);
-        return redirect()->back()->with('success', 'Attribute deleted successfully.');
-    }
-    
 }
