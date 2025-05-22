@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Actions\FetchOrder;
+use App\Models\Cart;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Customer;
+use App\Models\ProductVariant;
+use App\Models\VariantAttributeValue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
@@ -20,7 +23,7 @@ class OrderController extends Controller
 
        $orderItems = OrderItem::with(['order', 'product'])->select('id', 'order_id', 'product_id', 'quantity', 'price', 'created_at')->get();
        $customers = Customer::with('orders')->select('id', 'name', 'order_id', 'email', 'zip', 'city', 'phone', 'address', 'created_at')->get();
-       $products = Product::all();
+       $products = Product::with('category')->get();
 
        $orders = Order::with('customer')
                 ->where(function ($query) use ($search) {
@@ -38,64 +41,66 @@ class OrderController extends Controller
         return view('backend.orders.index', get_defined_vars());
     }
 
-    public function store(Request $request)
+    public function create(Request $request, Product $product)
     {
-        $request->validate([
-            'user_id' => 'nullable|exists:users,id',
-            'status' => 'nullable|in:pending,completed,cancelled',
-            'customer_id' => 'nullable|exists:customers,id',
-            'note' => 'nullable|string',
-            'product_id' => 'required|exists:products,id',
-            'product_variant_id' => 'required|exists:product_variants,id',
-            'quantity' => 'required|numeric',
-            'price' => 'required|numeric',
 
-            // Customer fields
-            'name' => 'required|string',
-            'email' => 'required|email',
-            'phone' => 'required|string',
-            'zip' => 'required|string',
-            'address' => 'required|string',
-        ]);
+        // Fetch all variant values of the product with their related attribute and value
+        $productVariant = ProductVariant::with('product')->where('product_id', $product->id)->select('id', 'price')->first();
 
-        try {
-            DB::beginTransaction();
+        $variants = VariantAttributeValue::with(['variant', 'variantAttribute', 'value'])
+            ->where('product_variant_id', $productVariant->id)
+            ->get();
 
-            $order = Order::create([
-                'user_id' => auth()->user()->id,
-                'order_number' => rand(100000, 999999),
-                'status' => 1,
-                'note' => $request->note,
-            ]);
 
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $request->product_id,
-                'product_variant_id' => $request->product_variant_id,
-                'quantity' => $request->quantity,
-                'price' => $request->price,
-            ]);
-
-            $customer = Customer::create([
-                'order_id' => $order->id,
-                'name' => $request->name,
-                'email' => $request->email,
-                'phone' => $request->phone,
-                'zip'   => $request->zip,
-                'address' => $request->address,
-            ]);
-
-            $order->customer_id = $customer->id;
-            $order->save();
-
-            DB::commit();
-            return response()->json(['type' => 'success', 'message' => 'Order created successfully'], 200);
-        } catch (\Throwable $th) {
-            DB::rollBack();
-            \Log::error('Error creating order: ' . $th->getMessage()); // Log error details
-            return response()->json(['type' => 'error', 'message' => $th->getMessage()], 500);
-        }
+        return view('frontend.order', compact('product', 'variants', 'productVariant'));
     }
+
+   public function store(Request $request)
+{
+    $request->validate([
+        'phone' => 'required|string',
+        'address' => 'required|string',
+        'payment_type' => 'required|string|in:cash_on_delivery,online_payment',
+    ]);
+
+    try {
+        DB::beginTransaction();
+        $order = new Order();
+        $order->order_number = 'ORD-' . time();
+        $order->status = 1;
+        $order->user_id = auth()->user()->id;
+        $order->phone_number = $request->phone;
+        $order->address = $request->address;
+        $order->payment_type = $request->payment_type;
+        $order->save();
+
+        $cart = Cart::where('user_id', auth()->user()->id)->get();
+
+
+        foreach ($cart as $item) {
+            $price = $item->productVariant->price;
+
+            $orderItem = new OrderItem();
+            $orderItem->order_id = $order->id;
+            $orderItem->product_id = $item->product_id;
+            $orderItem->product_variant_id = $item->product_variant_id;
+            $orderItem->quantity = $item->quantity;
+            $orderItem->price = $price;
+            $orderItem->save();
+        }
+
+        //clear cart
+        Cart::where('user_id', auth()->user()->id)->delete();
+
+        DB::commit();
+        return redirect()->route('home')->with('success', 'Order created successfully');
+    } catch (\Throwable $th) {
+        DB::rollBack();
+        \Log::error('Error creating order: ' . $th->getMessage());
+        return redirect()->back()->with('error', 'Error creating order');
+    }
+}
+
 
 
     public function destroy(Order $order)
@@ -110,5 +115,5 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Order status updated successfully');
     }
 
-    
+
 }

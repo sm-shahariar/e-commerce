@@ -30,41 +30,26 @@
                     <div class="card-img-wrapper text-center mb-4">
                        
                         <img src="{{ $product->thumbnail }}" alt="" class="card-img-top">
-                        <!-- <a href="{{ route('product.details', $product->id) }}" class="details-icon"><i class="fas fa-info-circle"></i></a> -->
                     </div>
                     <!-- Product Name -->
                     <h5 class="card-title text-center mb-3">{{ ($product->name) }}</h5>
 
                         <!-- Color Selection -->
-                        @if(is_array($groupedVariants) ? array_key_exists('color', $groupedVariants) : $groupedVariants->has('color'))
                         <div class="mb-3">
                             <label class="form-label"><i class="fas fa-palette me-2"></i>Select Color</label>
                             <div class="d-flex gap-2">
-                            @foreach($groupedVariants['color'] as $variant)
-                                <button type="button" class="color-swatch {{ $loop->first ? 'active' : '' }}"
-                                        data-color="{{ $variant->productAttributeValue->value }}"
-                                        title="{{ $variant->productAttributeValue->value }}"
-                                        style="background-color: {{ $variant->productAttributeValue->value }};">
+                            @foreach($variants as $variant)
+                                <button type="button" class="variant-swatch {{ $loop->first ? 'active' : '' }}"
+                                        data-color="{{ $variant->variantAttribute->attribute->value?->name }}"
+                                        title="{{ $variant->variantAttribute->attribute->value?->name }}"
+                                        style="background-color: {{ $variant->variantAttribute->attribute->value?->name }};">
                                 </button>
                             @endforeach
                             </div>
                         </div>
-                    @endif
 
                     <!-- Size Selection -->
-                    @if(is_array($groupedVariants) ? array_key_exists('size', $groupedVariants) : $groupedVariants->has('size'))
-                        <div class="mb-3">
-                            <label class="form-label"><i class="fas fa-ruler me-2"></i>Select Size</label>
-                            <div class="d-flex gap-2 flex-wrap">
-                                @foreach($groupedVariants['size'] as $variant)
-                                    <button type="button" class="variant-btn {{ $loop->first ? 'active' : '' }}" 
-                                            data-size="{{ $variant->productAttributeValue->value }}">
-                                        {{ $variant->productAttributeValue->value }}
-                                    </button>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
+                        
 
                         <!-- Quantity Selection -->
                         <div class="mb-3">
@@ -80,9 +65,9 @@
                         <div class="text-center">
                             <h4 class="card-text product-price" id="total-price">
                             ৳{{
-                                    $variants->isNotEmpty() && $variants->first()->productVariant
-                                        ? $variants->first()->productVariant->price
-                                        : ($product->price ?? '0.00')
+                                    $variants->isNotEmpty() && $variants->first()->variant
+                                        ? $variants->first()->variant->price
+                                        : ($variants->variant->product->price ?? '0.00')
                                 }}
                             </h4>
                             <small class="text-muted">Price updates dynamically</small>
@@ -150,10 +135,9 @@
 
 
 @push('scripts')
-
 <script>
     $(document).ready(function () {
-        // Initialize Toastr options
+        // Toastr options
         toastr.options = {
             closeButton: false,
             progressBar: true,
@@ -161,21 +145,60 @@
             timeOut: 3000
         };
 
-        // Price Calculation
-        const basePrice = @json(
-            $variants->isNotEmpty() && $variants->first()->productVariant
-                ? $variants->first()->productVariant->price
-                : ($product->price ?? 0)
-        );
+        // Base price
+        const basePrice = {{ $variants->isNotEmpty() && $variants->first()->productVariant 
+                            ? $variants->first()->productVariant->price 
+                            : ($product->price ?? 0) }};
 
+        // Prepare variants data - simplified and safe
+        const rawVariantsData = JSON.parse('{!! addslashes($variants->map(function ($variant) {
+            return [
+                'product_variant_id' => $variant->product_variant_id,
+                'variant_id' => $variant->id,
+                'attribute_name' => optional($variant->Attribute)->name,
+                'attribute_value' => optional($variant->AttributeValue)->value,
+                'price' => optional($variant->productVariant)->price
+            ];
+        })->toJson()) !!}');
+
+        // Process variants data
+        const variantsMap = {};
+        
+        rawVariantsData.forEach(function(item) {
+            if (!item.product_variant_id) return;
+            
+            if (!variantsMap[item.product_variant_id]) {
+                variantsMap[item.product_variant_id] = {
+                    id: item.product_variant_id,
+                    variant_attribute_value_ids: [],
+                    attributes: { color: null, size: null },
+                    price: item.price || basePrice
+                };
+            }
+
+            variantsMap[item.product_variant_id].variant_attribute_value_ids.push(item.variant_id);
+            
+            if (item.attribute_name === 'color') {
+                variantsMap[item.product_variant_id].attributes.color = item.attribute_value;
+            }
+            else if (item.attribute_name === 'size') {
+                variantsMap[item.product_variant_id].attributes.size = item.attribute_value;
+            }
+        });
+
+        const variantsMapArray = Object.values(variantsMap);
+
+        // Price update function
         function updatePrice() {
             const quantity = parseInt($('#quantity').val()) || 1;
-            const total = (basePrice * quantity).toFixed(2);
-            $('#total-price').text(`৳${total}`);
+            const selectedVariantId = getSelectedVariantId();
+            const variant = variantsMapArray.find(v => v.id == selectedVariantId);
+            const price = variant ? variant.price : basePrice;
+            const total = (price * quantity).toFixed(2);
+            $('#total-price').text('৳'+total);
         }
 
-
-        // Quantity Controls
+        // Quantity handlers
         $('#increase-quantity').click(function () {
             let qty = parseInt($('#quantity').val()) || 1;
             if (qty < 100) {
@@ -200,14 +223,12 @@
             updatePrice();
         });
 
-        // Color and Size Selection
+        // Variant selection
         $('.color-swatch').click(function () {
             $('.color-swatch').removeClass('active');
             $(this).addClass('active');
-        });
-
-        // Color Visible
-        $('.color-swatch').each(function () {
+            updatePrice();
+        }).each(function () {
             const color = $(this).data('color');
             $(this).css('background-color', color);
         });
@@ -215,99 +236,117 @@
         $('.variant-btn').click(function () {
             $('.variant-btn').removeClass('active');
             $(this).addClass('active');
+            updatePrice();
         });
 
-        // Clear validation feedback
+        // Form validation
         $('input, textarea').on('input', function () {
             $(this).removeClass('is-invalid');
             $(this).next('.invalid-feedback').text('');
         });
 
-        // Form Submission with AJAX
-       $('#order-form').on('submit', function (e) {
-        e.preventDefault();
-        let isValid = true;
-        const $form = $(this);
-        const $submitBtn = $('#submit-btn');
-        $submitBtn.prop('disabled', false);
+        // Get selected variant
+        function getSelectedVariantId() {
+            const selectedColor = $('.color-swatch.active').data('color') || null;
+            const selectedSize = $('.variant-btn.active').data('size') || null;
 
-        // Validate inputs...
-        const fields = [
-            { id: 'name', message: 'Name is required' },
-            { id: 'email', message: 'Valid email is required', pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
-            { id: 'phone', message: 'Valid phone number (10-15 digits) is required', pattern: /^[0-9]{10,15}$/ },
-            { id: 'zip', message: 'Valid postcode (4-6 digits) is required', pattern: /^[0-9]{4,6}$/ },
-            { id: 'address', message: 'Address is required' }
-        ];
-
-        fields.forEach(field => {
-            const $input = $(`#${field.id}`);
-            const value = $input.val().trim();
-            if (!value) {
-                $input.addClass('is-invalid').next('.invalid-feedback').text(field.message);
-                isValid = false;
-            } else if (field.pattern && !field.pattern.test(value)) {
-                $input.addClass('is-invalid').next('.invalid-feedback').text(field.message);
-                isValid = false;
-            }
-        });
-
-        if (!isValid) {
-            toastr.error('Please fix the errors in the form.');
-            $submitBtn.prop('disabled', false);
-            return;
+            return variantsMapArray.find(v => {
+                return (!selectedColor || v.attributes.color === selectedColor) &&
+                       (!selectedSize || v.attributes.size === selectedSize);
+            })?.id || null;
         }
 
-        // Build form data manually
-        const postData = {
-            name: $('#name').val(),
-            email: $('#email').val(),
-            phone: $('#phone').val(),
-            zip: $('#zip').val(), // fix here
-            address: $('#address').val(),
-            quantity: $('#quantity').val(),
-            price: (basePrice * $('#quantity').val()).toFixed(2), // fix here
-            product_id: '{{ $product->id }}',
-            product_variant_id: '{{ $variants->first()->productVariant->id ?? null }}'
-        };
+        // Get selected variant attributes
+        function getSelectedVariantAttributeValueIds() {
+            const selectedColor = $('.color-swatch.active').data('color') || null;
+            const selectedSize = $('.variant-btn.active').data('size') || null;
 
+            const variant = variantsMapArray.find(v => {
+                return (!selectedColor || v.attributes.color === selectedColor) &&
+                       (!selectedSize || v.attributes.size === selectedSize);
+            });
+            
+            return variant ? variant.variant_attribute_value_ids : [];
+        }
 
-        $.ajax({
-            url: $form.attr('action'),
-            type: 'POST',
-            data: postData,
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function (response) {
-                toastr.success('Order placed successfully!');
-                $form[0].reset();
-                $('.color-swatch').removeClass('active').first().addClass('active');
-                $('.variant-btn').removeClass('active').first().addClass('active');
-                $('#quantity').val(1);
-                updatePrice();
-            },
-            error: function (xhr) {
-                 console.log(xhr);
-                toastr.error('An error occurred. Please try again.');
-            },
-            complete: function () {
+        // Form submission
+        $('#order-form').on('submit', function (e) {
+            e.preventDefault();
+            let isValid = true;
+            const $form = $(this);
+            const $submitBtn = $('#submit-btn');
+            $submitBtn.prop('disabled', true);
+
+            // Validation fields
+            const fields = [
+                { id: 'name', message: 'Name is required' },
+                { id: 'email', message: 'Valid email is required', pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
+                { id: 'phone', message: 'Valid phone number is required', pattern: /^[0-9]{10,15}$/ },
+                { id: 'zip', message: 'Valid postcode is required', pattern: /^[0-9]{4,6}$/ },
+                { id: 'address', message: 'Address is required' }
+            ];
+
+            fields.forEach(field => {
+                const $input = $('#'+field.id);
+                const value = $input.val().trim();
+                if (!value) {
+                    $input.addClass('is-invalid').next('.invalid-feedback').text(field.message);
+                    isValid = false;
+                } else if (field.pattern && !field.pattern.test(value)) {
+                    $input.addClass('is-invalid').next('.invalid-feedback').text(field.message);
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                toastr.error('Please fix the form errors');
                 $submitBtn.prop('disabled', false);
+                return;
             }
+
+            // Prepare submission data
+            const selectedVariantId = getSelectedVariantId();
+            const selectedVariant = variantsMapArray.find(v => v.id == selectedVariantId);
+            const price = selectedVariant ? selectedVariant.price : basePrice;
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'POST',
+                data: {
+                    name: $('#name').val(),
+                    email: $('#email').val(),
+                    phone: $('#phone').val(),
+                    zip: $('#zip').val(),
+                    address: $('#address').val(),
+                    quantity: $('#quantity').val(),
+                    price: (price * $('#quantity').val()).toFixed(2),
+                    product_id: '{{ $product->id }}',
+                    product_variant_id: '{{ $variant->id }}',
+                    variant_attribute_value_ids: getSelectedVariantAttributeValueIds(),
+                    _token: $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function (response) {
+                    toastr.success(response.message);
+                    $form[0].reset();
+                    $('.color-swatch').removeClass('active').first().addClass('active');
+                    $('.variant-btn').removeClass('active').first().addClass('active');
+                    $('#quantity').val(1);
+                    updatePrice();
+                },
+                error: function (xhr) {
+                    toastr.error(xhr.responseJSON?.message || 'Error occurred');
+                },
+                complete: function () {
+                    $submitBtn.prop('disabled', false);
+                }
+            });
         });
-    });
 
-
-        // Wishlist and Cart Icon Actions
-        $('.wishlist-icon').click(function (e) {
+        // Additional buttons
+        $('.wishlist-icon, .cart-icon').click(function (e) {
             e.preventDefault();
-            toastr.success('Added to Wishlist!');
+            toastr.success('Added to ' + ($(this).hasClass('wishlist-icon') ? 'Wishlist' : 'Cart'));
         });
-
-        $('.cart-icon').click(function (e) {
-            e.preventDefault();
-            toastr.success('Added to Cart!');
-        });
-    });
+    }); // This was missing - closes $(document).ready()
 </script>
 @endpush
