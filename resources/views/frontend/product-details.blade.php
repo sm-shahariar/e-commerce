@@ -1,131 +1,346 @@
 @extends('layouts.apps')
+
 @section('content')
-<!-- Creating the product details page with enhanced aesthetics -->
-<section id="product-details" class="py-5">
-    <div class="container">
-        <div class="row p-4">
-            <!-- Left Side: Main Image and Thumbnails -->
-            <div class="col-lg-6 mb-4">
-                <div class="main-image mb-4 position-relative overflow-hidden rounded">
-                    <img src="{{ $product->thumbnail }}" class="img-fluid shadow-sm" alt="Product Main Image" id="mainImage">
+    <div class="container mb-5">
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ $product->name }}</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <!-- Product Gallery Column -->
+            <div class="col-lg-6">
+                <div class="product-gallery mb-4">
+                    <img src="{{ $product->thumbnail }}" class="img-fluid rounded main-image" alt="Premium Denim Jacket"
+                        id="mainProductImage" width="450" height="300">
                 </div>
-                <div class="thumbnail-images d-flex gap-3 justify-content-center">
-                    @foreach($product->images as $image)
-                    <img src="{{ $product->image }}" class="thumbnail rounded shadow-sm active" alt="">
-                    <img src="{{ $product->image }}" class="thumbnail rounded shadow-sm" alt="">
-                    <img src="{{ $product->image }}" class="thumbnail rounded shadow-sm" alt="">
-                    @endforeach
+                <div class="thumbnails d-flex flex-wrap gap-2">
+                    <img src="#" class="img-thumbnail thumbnail active" width="80"
+                        data-fullsize="https://via.placeholder.com/600x800/EEE?text=Denim+Jacket+Front" alt="Front view">
+                    <img src="#" class="img-thumbnail thumbnail" width="80"
+                        data-fullsize="https://via.placeholder.com/600x800/DDD?text=Denim+Jacket+Back" alt="Back view">
+                    <img src="#" class="img-thumbnail thumbnail" width="80"
+                        data-fullsize="https://via.placeholder.com/600x800/CCC?text=Denim+Jacket+Side" alt="Side view">
+                    <img src="#" class="img-thumbnail thumbnail" width="80"
+                        data-fullsize="https://via.placeholder.com/600x800/BBB?text=Denim+Jacket+Detail" alt="Detail view">
                 </div>
             </div>
 
-            <!-- Right Side: Product Details -->
+            <!-- Product Info Column -->
             <div class="col-lg-6">
-                <h2 class="product-title mb-3 text-dark">{{ $product->name }}</h2>
-                <p class="product-price mb-4 text-primary fs-3 fw-bold">
-                     ৳{{
-                            $variants->isNotEmpty() && $variants->first()->productVariant
-                                ? $variants->first()->productVariant->price
-                                : ($product->price ?? '0.00')
-                        }}
-                </p>
+                <h1 class="mb-2">{{ $product->name }}</h1>
+                <div class="d-flex align-items-center mb-3">
+                    <span class="badge bg-success">In Stock: <span class="ms-2">{{ $product->stock }}</span></span>
+                </div>
 
-                <!-- Variant Selection: Color -->
-                <div class="mb-4">
-                    <label class="form-label fw-bold text-dark">Color</label>
-                    <div class="d-flex gap-2 flex-wrap">
-                        @if(isset($groupedVariants['color']) && $groupedVariants['color']->isNotEmpty())
-                            @foreach($groupedVariants['color'] as $variant)
-                                <input 
-                                    type="radio" 
-                                    name="color" 
-                                    id="color{{ str_replace(' ', '', $variant->productAttributeValue->value) }}" 
-                                    value="{{ strtolower($variant->productAttributeValue->value) }}" 
-                                    class="d-none">
-                                <label 
-                                    for="color{{ str_replace(' ', '', $variant->productAttributeValue->value) }}" 
-                                    class="variant-btn btn btn-outline-primary">
-                                    {{ $variant->productAttributeValue->value }}
-                                </label>
+                <div class="price mb-3">
+                    <span class="ms-2" id="productPrice">৳ {{ $product->price }}</span>
+                </div>
+
+                @foreach ($attributes as $attributeName => $valuesGroup)
+                    @php
+                        $index = $loop->index;
+                    @endphp
+                    <div class="mb-4">
+                        <h5 class="mb-3">{{ $attributeName }}</h5>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach ($valuesGroup->flatten() as $value)
+                                @if ($attributeName == 'Color')
+                                    <div class="color-option attribute-value"
+                                        style="background-color: {{ $value->value->name }}"
+                                        data-color="{{ $value->value->name }}" data-index="{{ $index }}"
+                                        data-value-id="{{ $value->id }}"
+                                        data-attribute-id="{{ $value->variant_attribute_id }}"
+                                        title="{{ $value->value->name }}"></div>
+                                @else
+                                    <div class="size-option attribute-value p-2 border rounded"
+                                        data-index="{{ $index }}" data-value-id="{{ $value->id }}"
+                                        data-attribute-id="{{ $value->variant_attribute_id }}">{{ $value->value->name }}
+                                    </div>
+                                @endif
                             @endforeach
-                        @else
-                            <p>No color variants available.</p>
-                        @endif
+                        </div>
+                    </div>
+                @endforeach
+
+                <!-- Quantity and Add to Cart -->
+                <div class="d-flex align-items-center mb-4">
+                    <div class="input-group me-3" style="width: 140px;">
+                        <button class="btn btn-outline-secondary minus-btn" type="button">-</button>
+                        <input type="text" class="form-control text-center quantity-input" value="1">
+                        <button class="btn btn-outline-secondary plus-btn" type="button">+</button>
+                    </div>
+                    <form action="{{ route('cart.store', $product->id) }}" method="post">
+                        @csrf
+                        <input type="hidden" name="product_variant_id" id="productVariantId">
+                        <button type="submit" id="addToCartBtn" class="btn btn-primary btn-lg flex-grow-1 add-to-cart-btn">
+                            <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Wishlist and Share -->
+                <div class="d-flex gap-3">
+                    <button class="btn btn-outline-secondary wishlist-btn">
+                        <i class="far fa-heart me-2"></i> Add to Wishlist
+                    </button>
+                    <button class="btn btn-outline-secondary">
+                        <i class="fas fa-share-alt me-2"></i> Share
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Tabs -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <ul class="nav nav-tabs mb-4" id="productTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="description-tab" data-bs-toggle="tab"
+                            data-bs-target="#description" type="button" role="tab">Description</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="productTabsContent">
+                    <div class="tab-pane fade show active" id="description" role="tabpanel">
+                        <h4 class="mb-3">Product Description</h4>
+                        <p>{{ $product->description }}</p>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Variant Selection: Size -->
-                <div class="mb-4">
-                    <label class="form-label fw-bold text-dark">Size</label>
-                    <div class="d-flex gap-2 flex-wrap">
-                        @if(isset($groupedVariants['size']) && $groupedVariants['size']->isNotEmpty())
-                            @foreach($groupedVariants['size'] as $variant)
-                                <input 
-                                    type="radio" 
-                                    name="size" 
-                                    id="size{{ str_replace(' ', '', $variant->productAttributeValue->value) }}" 
-                                    value="{{ strtolower($variant->productAttributeValue->value) }}" 
-                                    class="d-none"
-                                >
-                                <label 
-                                    for="size{{ str_replace(' ', '', $variant->productAttributeValue->value) }}" 
-                                    class="variant-btn btn btn-outline-primary"
-                                >
-                                    {{ $variant->productAttributeValue->value }}
-                                </label>
-                            @endforeach
-                        @else
-                            <p>No size variants available.</p>
-                        @endif
+        <!-- You May Also Like -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="mb-4">Complete Your Look</h3>
+                <div class="row" id="relatedProducts">
+                    <!-- Related products will be loaded via AJAX -->
+                    <div class="col-12 text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Product Details -->
-                <div class="product-details mb-5">
-                    <h4 class="fw-bold mb-3 text-dark">Product Details</h4>
-                    <p class="text-muted">{{ $product->description }}</p>
-                    <!-- <ul class="list-unstyled">
-                        <li class="mb-2"><i class="fa fa-check-circle text-primary me-2"></i>Material: 100% Cotton</li>
-                        <li class="mb-2"><i class="fa fa-check-circle text-primary me-2"></i>Fit: Regular</li>
-                        <li class="mb-2"><i class="fa fa-check-circle text-primary me-2"></i>Care: Machine Washable</li>
-                        <li><i class="fa fa-check-circle text-primary me-2"></i>Made in: USA</li>
-                    </ul> -->
-                </div>
-
-                <!-- Order Now Button -->
-                <div class="order-now">
-                    <a href="{{ route('product.order', $product->id) }}" class="btn btn-primary btn-lg glow-btn">Order Now</a>
                 </div>
             </div>
         </div>
     </div>
-</section>
+@endsection
 
 @push('scripts')
-<script>
-    $(document).ready(function () {
-        // Handle thumbnail click
-        $('.thumbnail').on('click', function () {
-            // Update main image source
-            $('#mainImage').attr('src', $(this).data('image'));
+    <script>
+        $(document).ready(function() {
+            // Initialize toastr
+            toastr.options = {
+                "closeButton": false,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "timeOut": "3000"
+            };
 
-            // Remove active class from all thumbnails
-            $('.thumbnail').removeClass('active');
+            // Product variants data (should be passed from controller)
+            const variants = @json($variants);
 
-            // Add active class to clicked thumbnail
-            $(this).addClass('active');
+
+            console.log(variants);
+
+            // Selected values storage
+
+
+            // Thumbnail image click handler
+            $('.thumbnail').click(function() {
+                $('.thumbnail').removeClass('active');
+                $(this).addClass('active');
+                $('#mainProductImage').attr('src', $(this).data('fullsize'));
+            });
+
+            let selectedValues = {};
+
+            // Color selection
+            $('.attribute-value').click(function() {
+                //.attribute-value siblings of this element
+                $(this).siblings().removeClass('active');
+                $(this).addClass('active');
+                selectedValues[$(this).data('index')] = {
+                    'attribute_id': $(this).data('attribute-id'),
+                    'attribute_value_id': $(this).data('value-id')
+                };
+
+                const productVariationId = findVariationId(variants, Object.values(selectedValues));
+
+                if (productVariationId) {
+                    const price = getPrice(productVariationId);
+                    $('#productPrice').html('৳ ' + price);
+                    $('#productVariantId').val(productVariationId);
+                    $('#addToCartBtn').prop('disabled', false);
+                } else {
+                    $('#productVariantId').val('');
+                    $('#addToCartBtn').prop('disabled', true);
+
+                    toastr.error('Selected combination is not available. choose another combination.');
+                }
+            });
+
+            function findVariationId(variants, selectedAttributes) {
+                // Create a map to group variants by product_variation_id
+                const variantMap = new Map();
+
+                // Group all variant entries by their product_variation_id
+                for (const variant of variants) {
+                    if (!variantMap.has(variant.product_variation_id)) {
+                        variantMap.set(variant.product_variation_id, []);
+                    }
+                    variantMap.get(variant.product_variation_id).push(variant);
+                }
+
+                // Check each product variation to see if it matches all selected attributes
+                for (const [variationId, variantEntries] of variantMap.entries()) {
+                    let allAttributesMatch = true;
+
+                    for (const selectedAttr of selectedAttributes) {
+                        // Find if this variant has an entry for the selected attribute
+                        const variantAttrEntry = variantEntries.find(
+                            entry => entry.attribute === selectedAttr.attribute_id
+                        );
+
+                        // Check if the selected value is in the variant's values
+                        if (!variantAttrEntry ||
+                            !variantAttrEntry.values.includes(selectedAttr.attribute_value_id)) {
+                            allAttributesMatch = false;
+                            break;
+                        }
+                    }
+
+                    if (allAttributesMatch) {
+                        return variationId;
+                    }
+                }
+
+                return null; // No matching variation found
+            }
+
+            function getPrice(variationId) {
+                const product = @json($product);
+                const variant = product.variants.find(variant => variant.id === variationId);
+                return variant.price;
+            }
+
+
+            // Update stock information
+            function updateStockInfo(stock) {
+                const stockBadge = $('.badge.bg-success');
+                if (stock > 0) {
+                    stockBadge.text(`In Stock: ${stock}`);
+                    stockBadge.removeClass('bg-danger').addClass('bg-success');
+                    $('.add-to-cart-btn').prop('disabled', false);
+                } else {
+                    stockBadge.text('Out of Stock');
+                    stockBadge.removeClass('bg-success').addClass('bg-danger');
+                    $('.add-to-cart-btn').prop('disabled', true);
+                }
+            }
+
+            // Update price display
+            function updatePrice(price) {
+                $('.price span').text(`৳ ${price}`);
+            }
+
+            // Quantity adjustment
+            $('.minus-btn').click(function() {
+                var $input = $(this).siblings('.quantity-input');
+                var value = parseInt($input.val());
+                if (value > 1) {
+                    $input.val(value - 1);
+                }
+            });
+
+            $('.plus-btn').click(function() {
+                var $input = $(this).siblings('.quantity-input');
+                var value = parseInt($input.val());
+                $input.val(value + 1);
+            });
+
+            // Add to cart with AJAX
+            $(document).on('submit', 'form[action="{{ route('cart.store', $product->id) }}"]', function(e) {
+
+                e.preventDefault();
+
+                const variantId = $('#productVariantId').val();
+                const quantity = $('.quantity-input').val();
+
+                // Check if any attribute options are available
+                const hasAttributes = $('.color-option, .size-option').length > 0;
+
+                if (hasAttributes && !variantId) {
+                    // Highlight the unselected options
+                    if (!selectedValues['Color'] && $('.color-option').length) {
+                        toastr.error('Please select a color');
+                        $('.color-option').first().focus();
+                        return;
+                    }
+                    if (!selectedValues['Size'] && $('.size-option').length) {
+                        toastr.error('Please select a size');
+                        $('.size-option').first().focus();
+                        return;
+                    }
+                    return;
+                }
+
+                // If no attributes exist (simple product), we can proceed without variantId
+                if (!hasAttributes) {
+                    // For simple products without variants
+                    $('#productVariantId').val('{{ $product->default_variant_id }}');
+                }
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        product_variant_id: variantId || '{{ $product->default_variant_id }}',
+                        quantity: quantity
+                    },
+                    beforeSend: function() {
+                        $('.add-to-cart-btn').prop('disabled', true).html(
+                            '<i class="fas fa-spinner fa-spin"></i> Adding...');
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.success);
+                            // Update cart count in navbar
+                            $('.cart-count').text(response.cart_count);
+                        } else {
+                            toastr.error(response.error);
+                        }
+                    },
+                    error: function(xhr) {
+                        toastr.error(xhr.responseJSON?.message ||
+                            'An error occurred while adding to cart.');
+                    },
+                    complete: function() {
+                        $('.add-to-cart-btn').prop('disabled', false).html(
+                            '<i class="fas fa-shopping-cart me-2"></i> Add to Cart');
+                    }
+                });
+            });
+
+            // Add to wishlist with AJAX
+            $('.wishlist-btn').click(function() {
+                const variantId = $('#productVariantId').val();
+
+                if (!variantId) {
+                    toastr.error('Please select at least one option before adding to wishlist');
+                    return;
+                }
+
+
+            });
+
+            // Initial load
+            // loadRelatedProducts();
         });
-
-        // Set first thumbnail as active by default
-        $('.thumbnail').first().addClass('active');
-
-        // Handle variant button click for color and size
-        $('.variant-btn').on('click', function () {
-            // Remove active class from all buttons in the same group
-            $(this).siblings('.variant-btn').removeClass('active');
-            // Add active class to clicked button
-            $(this).addClass('active');
-        });
-    });
-</script>
+    </script>
 @endpush
-@endsection
