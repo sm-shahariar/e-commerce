@@ -42,15 +42,18 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'phone' => $request->phone,
             'password' => Hash::make($request->password),
-            'role' => $validated['role'] ?? User::USER, // Default to USER if not provided
+            'role' => User::USER, // default role
 
         ]);
 
+         $user->assignRole('user');
+
+        // Fire registered event
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('home');
 
         // return response()->json(['status' => 'success', 'message' => 'Registration successful.', 'data' => $user], 200);
     }
