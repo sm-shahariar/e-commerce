@@ -1,231 +1,404 @@
 @extends('layouts.apps')
-
 @section('content')
-<!-- Creating the cart page with a clean, modern design -->
-<section id="cart" class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-5 text-dark animate__animated animate__fadeIn">Your Cart</h2>
+    <!-- Cart Section -->
+    <section class="py-5">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ route('home') }}"><i class="fas fa-home me-1"></i> Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url('products') }}">Shop</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Your Cart</li>
+                </ol>
+            </nav>
 
-        @if (session('success'))
-            <div class="alert alert-success animate__animated animate__fadeIn">
-                {{ session('success') }}
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="alert alert-danger animate__animated animate__fadeIn">
-                {{ session('error') }}
-            </div>
-        @endif
+            <h2 class="section-title">Your Shopping Cart</h2>
 
-        @if ($carts->isEmpty())
-            <div class="alert alert-info text-center">
-                Your cart is empty. <a href="{{ url('home') }}">Shop now!</a>
-            </div>
-        @else
-            <!-- Cart Table for Desktop -->
-            <div class="table-responsive d-none d-md-block mb-4 animate__animated animate__fadeIn animate__delay-1s">
-                <table class="table table-hover bg-white rounded shadow-lg">
-                    <thead class="bg-primary text-white">
-                        <tr>
-                            <th scope="col" class="py-3">Product</th>
-                            <th scope="col" class="py-3">Price</th>
-                            <th scope="col" class="py-3">Quantity</th>
-                            <th scope="col" class="py-3">Subtotal</th>
-                            <th scope="col" class="py-3">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($carts as $cart)
-                            <tr class="cart-item" data-cart-id="{{ $cart->id ?? $cart->product_id }}">
-                                <td class="py-4">
-                                    <div class="d-flex align-items-center">
-                                        <img src="{{ asset($cart->product->image ?? 'build/images/default_product.jpg') }}" class="rounded shadow-sm me-3" alt="{{ $cart->product->name }}" style="width: 80px; height: 80px; object-fit: cover;">
-                                        <span class="fw-bold">{{ $cart->product->name }}</span>
-                                    </div>
-                                </td>
-                                <td class="py-4 align-middle price">৳ {{ number_format($cart->product->price, 2) }}</td>
-                                <td class="py-4 align-middle">
-                                    <form action="{{ route('cart.update', $cart->id ?? $cart->product_id) }}" method="POST" class="quantity-form">
-                                        @csrf
-                                        @method('PATCH')
-                                        <div class="quantity-control d-flex align-items-center">
-                                            <button type="button" class="btn btn-outline-primary btn-sm decrease-quantity">-</button>
-                                            <input type="number" name="quantity" class="form-control quantity mx-2" value="{{ $cart->quantity }}" min="1" style="width: 60px; text-align: center;">
-                                            <button type="button" class="btn btn-outline-primary btn-sm increase-quantity">+</button>
+            <div class="row">
+                <div class="col-lg-8">
+                    @if (count($carts) > 0)
+                        <div class="card mb-4 border-0">
+                            <div class="card-body p-0">
+                                @foreach ($carts as $cart)
+                                    <!-- Cart Item -->
+                                    <div class="cart-item" data-item-id="{{ $cart->id }}">
+                                        <div class="row">
+                                            <div class="col-md-2 mb-3 mb-md-0">
+                                                <div class="position-relative">
+                                                    <img src="{{ $cart->product->thumbnail }}"
+                                                        class="cart-item-img img-fluid" alt="{{ $cart->product->name }}">
+                                                    @if ($cart->product->discount > 0)
+                                                        <div class="discount-badge">-{{ $cart->product->discount }}%</div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h5 class="product-title">{{ $cart->product->name }}</h5>
+
+                                                <div class="mb-3">
+                                                    @foreach ($cart->productVariant->attributes as $attribute)
+                                                        <div class="mb-2">
+                                                            <div class="attribute-title">{{ $attribute->attribute->name }}
+                                                            </div>
+                                                            <div>
+                                                                @foreach ($attribute->values as $value)
+                                                                    <span
+                                                                        class="attribute-badge">{{ $value->value->name }}</span>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+
+                                                <div class="d-flex align-items-center quantity-controls">
+                                                    <button
+                                                        class="btn btn-outline-secondary btn-sm quantity-btn minus px-3">
+                                                        <i class="fas fa-minus"></i>
+                                                    </button>
+                                                    <input type="number" class="form-control quantity-input mx-2"
+                                                        value="{{ $cart->quantity }}" min="1">
+                                                    <button class="btn btn-outline-secondary btn-sm quantity-btn plus px-3">
+                                                        <i class="fas fa-plus"></i>
+                                                    </button>
+                                                    <div class="loading-spinner ms-2"></div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-2 text-md-center mt-3 mt-md-0">
+                                                <p class="mb-1 text-muted small">Unit Price</p>
+                                                <h5 class="current-price mb-1">
+                                                    ${{ number_format($cart->productVariant->price, 2) }}</h5>
+                                                @if ($cart->product->discount > 0)
+                                                    <p class="original-price mb-0">
+                                                        ${{ number_format($cart->productVariant->price * (1 + $cart->product->discount / 100), 2) }}
+                                                    </p>
+                                                @endif
+                                            </div>
+                                            <div class="col-md-2 text-md-center mt-3 mt-md-0">
+                                                <p class="mb-1 text-muted small">Total</p>
+                                                <h5 class="item-total mb-2">
+                                                    ${{ number_format($cart->productVariant->price * $cart->quantity, 2) }}
+                                                </h5>
+                                                <a href="" class="btn btn-link remove-item p-0">
+
+                                                </a>
+                                                <form action="{{ route('cart.delete', $cart->product->id) }}"
+                                                    method="POST" class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="btn btn-link clear-cart" type="submit">
+                                                        <i class="fas fa-trash me-1"></i> Remove
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
-                                    </form>
-                                </td>
-                                <td class="py-4 align-middle subtotal">৳ {{ number_format($cart->product->price * $cart->quantity, 2) }}</td>
-                                <td class="py-4 align-middle">
-                                    <div class="d-flex align-items-center">
-                                        <!-- Delete Button -->
-                                        <form action="{{ route('cart.destroy', $cart->id ?? $cart->product_id) }}" method="POST">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm remove-item me-2">
-                                                <i class="fa fa-trash"></i>
-                                            </button>
-                                        </form>
-                                        <!-- Order Now Button for Individual Item -->
-                                        <a href="{{ route('product.order', $cart->product_id) }}" class="btn btn-primary btn-xs">Order Now</a>
                                     </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <!-- Cart Cards for Mobile -->
-            <div class="d-md-none mb-4">
-                @foreach ($carts as $cart)
-                    <div class="card mb-3 shadow-sm animate__animated animate__fadeIn animate__delay-1s cart-item" data-cart-id="{{ $cart->id ?? $cart->product_id }}">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-3">
-                                <img src="{{ asset($cart->product->image ?? 'build/images/default_product.jpg') }}" class="rounded shadow-sm me-3" alt="{{ $cart->product->name }}" style="width: 60px; height: 60px; object-fit: cover;">
-                                <div>
-                                    <h6 class="mb-1 fw-bold">{{ $cart->product->name }}</h6>
-                                    <p class="mb-0 text-primary price">৳ {{ number_format($cart->product->price, 2) }}</p>
-                                </div>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <form action="{{ route('cart.update', $cart->id ?? $cart->product_id) }}" method="POST" class="quantity-form">
-                                    @csrf
-                                    @method('PATCH')
-                                    <div class="quantity-control d-flex align-items-center">
-                                        <button type="button" class="btn btn-outline-primary btn-sm decrease-quantity">-</button>
-                                        <input type="number" name="quantity" class="form-control quantity mx-2" value="{{ $cart->quantity }}" min="1" style="width: 60px; text-align: center;">
-                                        <button type="button" class="btn btn-outline-primary btn-sm increase-quantity">+</button>
-                                    </div>
-                                </form>
-                                <p class="mb-0 text-dark fw-bold subtotal">৳ {{ number_format($cart->product->price * $cart->quantity, 2) }}</p>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <!-- Delete Button -->
-                                <form action="{{ route('cart.destroy', $cart->id ?? $cart->product_id) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm remove-item">
-                                        <i class="fa fa-trash"></i> Remove
-                                    </button>
-                                </form>
-                                <a href="{{ route('product.order', $cart->product_id) }}" class="btn btn-primary btn-xs">Order Now</a>
+                                @endforeach
                             </div>
                         </div>
+
+                        <div class="d-flex justify-content-between mb-5">
+                            <a href="{{ route('home') }}" class="back-to-shop">
+                                <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                            </a>
+                            <form action="{{ route('cart.clear') }}" method="POST" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-link clear-cart" type="submit">
+                                    <i class="fas fa-trash me-1"></i>Clear Cart
+                                </button>
+                            </form>
+                        </div>
+                    @else
+                        <div class="card border-0">
+                            <div class="empty-cart">
+                                <div class="empty-cart-icon">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <h3 class="mb-3">Your Cart is Empty</h3>
+                                <p class="text-muted mb-4">Looks like you haven't added anything to your cart yet</p>
+                                <a href="{{ url('products') }}" class="btn btn-primary">
+                                    <i class="fas fa-store me-2"></i>Start Shopping
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Order Summary -->
+                <div class="col-lg-4">
+                    <div class="card summary-card mb-4">
+                        <div class="card-body">
+                            <h5 class="summary-title mb-4">
+                                <i class="fas fa-receipt me-2"></i>Order Summary
+                            </h5>
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal (<span class="total-items">3</span> items)</span>
+                                <span class="summary-value">$<span class="subtotal">314.97</span></span>
+                            </div>
+
+                            <hr>
+
+                            <div class="d-flex justify-content-between mb-4">
+                                <h5>Total</h5>
+                                <h5 class="summary-value">$<span class="total-price">333.86</span></h5>
+                            </div>
+                            <form action="{{ route('orders.store') }}" method="POST">
+                                @csrf
+                                <div class="form-group mb-3">
+                                    <label for="phone">Phone</label>
+                                    <input type="text" class="form-control" id="phone" name="phone" required>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="address">Delivery Address</label>
+                                    <input type="text" class="form-control" id="address" name="address" required>
+                                </div>
+
+
+                                <div class="form-group mb-3">
+                                    <label for="payment_type">Payment Type</label>
+                                    <select class="form-select" name="payment_type" id="payment_type" required>
+                                        <option value="">Select Payment Type</option>
+                                        <option value="cash_on_delivery">Cash on Delivery</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="btn btn-checkout w-100 py-2 mb-3 text-white"
+                                    id="checkout-btn">
+                                    <i class="fas fa-lock me-2"></i>Complete Checkout
+                                </button>
+                            </form>
+
+
+
+                        </div>
                     </div>
-                @endforeach
-            </div>
 
-            <!-- Cart Summary and Order Button -->
-            <div class="card shadow-lg p-4 mb-4 animate__animated animate__fadeIn animate__delay-2s">
-                <h4 class="text-dark mb-3">Cart Summary</h4>
-                <div class="d-flex justify-content-between mb-3">
-                    <span class="fw-bold">Total</span>
-                    <span class="fw-bold text-primary" id="cart-total">৳ {{ number_format($cartTotalCost, 2) }}</span>
-                </div>
-                <div class="text-end">
-                    <form id="orderForm" action="#" method="POST">
-                        @csrf
-                        <button type="submit" class="btn btn-primary btn-lg glow-btn">Order All</button>
-                    </form>
+                    <div class="card border-0">
+                        <div class="card-body">
+                            <h6 class="mb-3"><i class="fas fa-shield-alt me-2 text-success"></i> Secure Shopping
+                                Guarantee
+                            </h6>
+                            <p class="small text-muted mb-0">Your information is protected by 256-bit SSL encryption. We
+                                never store your credit card details.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        @endif
-    </div>
-</section>
+        </div>
+    </section>
 
-@push('scripts')
+@endsection
+
 <script>
-    $(document).ready(function () {
-        toastr.options = {
-            closeButton: false,
-            progressBar: true,
-            background: '#00ff7f',
-            positionClass: 'toast-top-right',
-            timeOut: 3000
-        };
-
-        // Handle quantity increase
-        $('.increase-quantity').on('click', function () {
-            const $input = $(this).closest('.quantity-control').find('.quantity');
-            const newQty = parseInt($input.val()) + 1;
-            $input.val(newQty).trigger('change');
-        });
-
-        // Handle quantity decrease
-        $('.decrease-quantity').on('click', function () {
-            const $input = $(this).closest('.quantity-control').find('.quantity');
-            const currentQty = parseInt($input.val());
-            if (currentQty > 1) {
-                $input.val(currentQty - 1).trigger('change');
-            }
-        });
-
-        // Handle manual quantity input
-        $('.quantity').on('change', function () {
-            const $input = $(this);
-            const $form = $input.closest('.quantity-form');
-            if (parseInt($input.val()) < 1 || isNaN(parseInt($input.val()))) {
-                $input.val(1);
-            }
-
-            // Submit the form via AJAX to update quantity
-            $.ajax({
-                url: $form.attr('action'),
-                method: 'POST',
-                data: $form.serialize(),
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (response) {
-                    if (response.success) {
-                        toastr.success(response.message);
-                        // Update subtotal and total
-                        const $row = $input.closest('.cart-item');
-                        const price = parseFloat($row.find('.price').text().replace('৳ ', '').replace(',', ''));
-                        const quantity = parseInt($input.val());
-                        const subtotal = price * quantity;
-                        $row.find('.subtotal').text('৳ ' + subtotal.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'));
-                        $('#cart-total').text('৳ ' + response.cartTotalCost.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'));
-                    } else {
-                        toastr.error(response.message);
-                    }
-                },
-                error: function () {
-                    toastr.error('Failed to update quantity.');
-                    $input.val(1); // Reset on error
-                }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Color selection
+        document.querySelectorAll('.color-option').forEach(color => {
+            color.addEventListener('click', function() {
+                const parent = this.closest('.cart-item');
+                parent.querySelectorAll('.color-option').forEach(opt => opt.classList.remove(
+                    'selected'));
+                this.classList.add('selected');
+                parent.querySelector('.selected-color').value = this.dataset.color;
+                updateCartItem(parent);
             });
         });
 
-        // Handle remove item
-        $('.remove-item').on('click', function (e) {
-            e.preventDefault();
-            const $form = $(this).closest('form');
-            $.ajax({
-                url: $form.attr('action'),
-                method: 'POST',
-                data: $form.serialize(),
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (response) {
-                    if (response.success) {
-                        toastr.success(response.message);
-                        $form.closest('.cart-item').remove();
-                        $('#cart-total').text('৳ ' + response.cartTotalCost.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'));
-                        if ($('.cart-item').length === 0) {
-                            location.reload(); // Reload to show empty cart message
-                        }
-                    } else {
-                        toastr.error(response.message);
-                    }
-                },
-                error: function () {
-                    toastr.error('Failed to remove item.');
-                }
+        // Size selection
+        document.querySelectorAll('.size-option').forEach(size => {
+            size.addEventListener('click', function() {
+                const parent = this.closest('.cart-item');
+                parent.querySelectorAll('.size-option').forEach(opt => opt.classList.remove(
+                    'selected'));
+                this.classList.add('selected');
+                parent.querySelector('.selected-size').value = this.dataset.size;
+                updateCartItem(parent);
             });
         });
+
+        // Quantity buttons functionality
+        document.querySelectorAll('.quantity-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const input = this.parentNode.querySelector('.quantity-input');
+                let value = parseInt(input.value);
+
+                if (this.classList.contains('minus') && value > 1) {
+                    input.value = value - 1;
+                } else if (this.classList.contains('plus')) {
+                    input.value = value + 1;
+                }
+
+                updateCartItem(this.closest('.cart-item'));
+            });
+        });
+
+        // Quantity input change
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.value < 1) this.value = 1;
+                updateCartItem(this.closest('.cart-item'));
+            });
+        });
+
+        // Remove item
+        document.querySelectorAll('.remove-item').forEach(button => {
+            button.addEventListener('click', function() {
+                const item = this.closest('.cart-item');
+                showLoading(item);
+
+                // Simulate AJAX call to remove item
+                setTimeout(() => {
+                    item.remove();
+                    updateCartSummary();
+                    updateCartCount();
+                    hideLoading(item);
+                }, 800);
+            });
+        });
+
+        // Clear cart
+        document.getElementById('clear-cart').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear your cart?')) {
+                document.querySelectorAll('.cart-item').forEach(item => {
+                    showLoading(item);
+                });
+
+                // Simulate AJAX call to clear cart
+                setTimeout(() => {
+                    document.querySelectorAll('.cart-item').forEach(item => item.remove());
+                    updateCartSummary();
+                    updateCartCount();
+                }, 1000);
+            }
+        });
+
+        // Apply promo code
+        document.getElementById('apply-promo').addEventListener('click', function() {
+            const promoCode = document.getElementById('promoCode').value;
+            const promoFeedback = document.getElementById('promo-feedback');
+
+            if (!promoCode) {
+                document.getElementById('promoCode').classList.add('is-invalid');
+                promoFeedback.textContent = 'Please enter a promo code';
+                return;
+            }
+
+            // Simulate AJAX call to validate promo code
+            showLoading(this);
+            this.disabled = true;
+
+            setTimeout(() => {
+                hideLoading(this);
+                this.disabled = false;
+
+                // Mock response
+                if (promoCode.toUpperCase() === 'DISCOUNT10') {
+                    document.getElementById('promoCode').classList.remove('is-invalid');
+                    document.getElementById('promoCode').classList.add('is-valid');
+                    promoFeedback.textContent = '';
+                    applyDiscount(10);
+                    alert('Promo code applied: 10% discount');
+                } else {
+                    document.getElementById('promoCode').classList.add('is-invalid');
+                    promoFeedback.textContent = 'Invalid promo code';
+                }
+            }, 1000);
+        });
+
+        // Checkout button
+        document.getElementById('checkout-btn').addEventListener('click', function() {
+            // In a real app, this would redirect to checkout
+            alert('Proceeding to checkout');
+        });
+
+        // Helper function to update cart item via AJAX
+        function updateCartItem(item) {
+            showLoading(item);
+
+            // Simulate AJAX call to update cart
+            setTimeout(() => {
+                const quantity = parseInt(item.querySelector('.quantity-input').value);
+                const priceText = item.querySelector('.text-danger') ?
+                    item.querySelector('.text-danger').textContent.replace('$', '') :
+                    item.querySelector('h5').textContent.replace('$', '');
+                const price = parseFloat(priceText);
+                const total = (quantity * price).toFixed(2);
+
+                item.querySelector('.item-total').textContent = '$' + total;
+                updateCartSummary();
+                hideLoading(item);
+            }, 800);
+        }
+
+        // Update cart summary
+        function updateCartSummary() {
+            let subtotal = 0;
+            let itemCount = 0;
+
+            document.querySelectorAll('.cart-item').forEach(item => {
+                const quantity = parseInt(item.querySelector('.quantity-input').value);
+                const priceText = item.querySelector('.text-danger') ?
+                    item.querySelector('.text-danger').textContent.replace('$', '') :
+                    item.querySelector('h5').textContent.replace('$', '');
+                const price = parseFloat(priceText);
+
+                subtotal += quantity * price;
+                itemCount += quantity;
+            });
+
+            const tax = (subtotal * 0.06).toFixed(2);
+            const total = (parseFloat(subtotal) + parseFloat(tax)).toFixed(2);
+
+            document.querySelector('.subtotal').textContent = subtotal.toFixed(2);
+            document.querySelector('.tax').textContent = tax;
+            document.querySelector('.total-price').textContent = total;
+            document.querySelector('.total-items').textContent = itemCount;
+        }
+
+        // Update cart count in navbar
+        function updateCartCount() {
+            let itemCount = 0;
+            document.querySelectorAll('.cart-item').forEach(item => {
+                itemCount += parseInt(item.querySelector('.quantity-input').value);
+            });
+
+            document.querySelector('.badge').textContent = itemCount;
+        }
+
+        // Apply discount
+        function applyDiscount(percent) {
+            let subtotal = parseFloat(document.querySelector('.subtotal').textContent);
+            const discount = subtotal * (percent / 100);
+            subtotal -= discount;
+
+            const tax = (subtotal * 0.06).toFixed(2);
+            const total = (parseFloat(subtotal) + parseFloat(tax)).toFixed(2);
+
+            document.querySelector('.subtotal').textContent = subtotal.toFixed(2);
+            document.querySelector('.tax').textContent = tax;
+            document.querySelector('.total-price').textContent = total;
+        }
+
+        // Show loading spinner
+        function showLoading(element) {
+            const spinner = element.querySelector('.loading-spinner') || element;
+            spinner.style.display = 'inline-block';
+            if (element.tagName === 'BUTTON') {
+                element.innerHTML = '';
+                element.appendChild(spinner);
+            }
+        }
+
+        // Hide loading spinner
+        function hideLoading(element) {
+            const spinner = element.querySelector('.loading-spinner') || element;
+            spinner.style.display = 'none';
+            if (element.tagName === 'BUTTON') {
+                element.textContent = element === document.getElementById('apply-promo') ? 'Apply' :
+                    'Proceed to Checkout';
+            }
+        }
     });
 </script>
-@endpush
-@endsection
