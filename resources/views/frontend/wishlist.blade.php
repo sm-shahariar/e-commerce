@@ -1,168 +1,74 @@
 @extends('layouts.apps')
+
 @section('content')
-<!-- Wishlist page to view and manage wishlisted products -->
-<section id="wishlist-section" class="py-5 position-relative overflow-hidden">
-    <div class="container">
-        <!-- Radial Gradient Overlay -->
-        <div class="profile-bg-overlay"></div>
+    <!-- Header -->
+    <header class="wishlist-header py-5 mb-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 fw-bold"><i class="fas fa-heart me-3"></i>My Wishlist</h1>
+                    <p class="lead">Your saved items for later</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <span class="badge bg-light text-dark fs-5 p-3">
+                        <i class="fas fa-gift me-2"></i> 5 Items
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
 
-        <!-- Breadcrumbs -->
-        <nav aria-label="breadcrumb" class="mb-4 animate__animated animate__fadeIn">
-            <ol class="breadcrumb bg-transparent p-0 justify-content-center">
-                <li class="breadcrumb-item"><a href="{{ url('home') }}">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Wishlist</li>
-            </ol>
-        </nav>
+    <!-- Main Content -->
+    <div class="container mb-5">
+        <!-- Filter/Sort Section -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="filter-buttons">
+                    <button class="btn btn-outline-primary active">All Items</button>
+                    <button class="btn btn-outline-secondary">On Sale</button>
+                    <button class="btn btn-outline-success">In Stock</button>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Sort by: Recently Added
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                        <li><a class="dropdown-item" href="#">Recently Added</a></li>
+                        <li><a class="dropdown-item" href="#">Price: Low to High</a></li>
+                        <li><a class="dropdown-item" href="#">Price: High to Low</a></li>
+                        <li><a class="dropdown-item" href="#">Alphabetical</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-        <!-- Page Title -->
-        <h2 class="product-title text-center mb-5 animate__animated animate__fadeIn">Your Wishlist</h2>
-
-        <div class="row justify-content-center animate__animated animate__fadeInUp">
-            <!-- Wishlist Items -->
-            <div class="col-lg-10">
-                
-                <div class="card shadow-sm text-center">
+        <!-- Wishlist Items -->
+        <div class="row">
+            <!-- Item 1 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card wishlist-card">
+                    <img src="https://via.placeholder.com/300x200?text=Product+1" class="card-img-top" alt="Product 1">
                     <div class="card-body">
-                        <h4 class="card-title">Your Wishlist is Empty</h4>
-                        <p class="product-details text-muted">
-                            Start adding products to your wishlist to keep track of your favorite items!
-                        </p>
-                        <a href="{{ url('home') }}" class="btn btn-primary glow-btn btn-lg">
-                            Shop Now
-                        </a>
-                    </div>
-                </div>
-            
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    @foreach($wishlists as $wishlist)
-                        <div class="col">
-                            <div class="card shadow-sm">
-                                <div class="card-img-wrapper">
-                                    <img src="{{ $wishlist->product->thumbnail }}" alt="" class="card-img-top">
-                                    <a href="{{ route('product.details', $wishlist->product->id) }}" class="details-icon">
-                                        <i class="fas fa-info-circle"></i>
-                                    </a>
-                                </div>
-                                <div class="card-body">
-                                    <h5 class="card-title"></h5>
-                                    <p class="card-text product-price">৳ {{ $wishlist->product->price }}</p>
-                                    <div class="card-actions">
-                                        <a href="{{ route('wishlist.destroy', $wishlist->product->id) }}" class="wishlist-icon remove-from-wishlist" data-id="" title="Remove from Wishlist">
-                                            <i class="fas fa-heart"></i>
-                                        </a>
-                                        <a href="#" class="cart-icon add-to-cart" data-id="" title="Add to Cart">
-                                            <i class="fas fa-shopping-cart"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="card-footer text-center">
-                                    <form action="{{ route('wishlist.store', $wishlist->product->id) }}" method="POST" class="order-form">
-                                        @csrf
-                                        <input type="hidden" name="product_id" value="">
-                                        <input type="hidden" name="quantity" value="1">
-                                        <button type="submit" class="btn btn-primary glow-btn btn-sm w-100">Order Now</button>
-                                    </form>
-                                </div>
-                            </div>
+                        <div class="wishlist-actions">
+                            <button class="btn btn-danger btn-sm mb-2" title="Remove">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            <button class="btn btn-primary btn-sm" title="Add to Cart">
+                                <i class="fas fa-shopping-cart"></i>
+                            </button>
                         </div>
-                    @endforeach
-                </div>
-                <!-- Clear Wishlist Button -->
-                <div class="text-center mt-5">
-                    <form action="{{ route('wishlist.destroy') }}" method="POST" style="display: inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-lg clear-wishlist">Clear Wishlist</button>
-                    </form>
+                        <h5 class="card-title">Wireless Bluetooth Headphones</h5>
+                        <p class="card-text text-muted">Premium noise cancelling headphones with 30hr battery life</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="price">$129.99</span>
+                            <span class="badge bg-success">In Stock</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</section>
 @endsection
-
-
-@push('scripts')
-<script>
-   $(document).ready(function () {
-    // Initialize Toastr options
-        toastr.options = {
-            closeButton: false,
-            progressBar: true,
-            positionClass: 'toast-top-right',
-            timeOut: 3000
-        };
-
-        // Remove from Wishlist
-        $('.remove-from-wishlist').on('click', function (e) {
-            e.preventDefault();
-            const productId = $(this).data('id');
-            $.ajax({
-                url: '/wishlist/' + productId,
-                method: 'DELETE',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    product_id: productId
-                },
-                success: function (response) {
-                    toastr.success('Item removed from wishlist!');
-                    // Reload the wishlist section by making an AJAX request
-                    reloadWishlist();
-                },
-                error: function () {
-                    toastr.error('Failed to remove item from wishlist.');
-                }
-            });
-        });
-
-        // Add to Cart
-        $('.add-to-cart').on('click', function (e) {
-            e.preventDefault();
-            const productId = $(this).data('id');
-            $.ajax({
-                url: '/cart',
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    product_id: productId,
-                    quantity: 1
-                },
-                success: function (response) {
-                    toastr.success('Item added to cart!');
-                },
-                error: function () {
-                    toastr.error('Failed to add item to cart.');
-                }
-            });
-        });
-
-        // Clear Wishlist Button Click
-       $('.clear-wishlist').on('click', function (e) {
-    e.preventDefault();
-    console.log('Clear Wishlist button clicked');
-    $.ajax({
-        url: '{{ route('wishlist.destroy') }}',
-        type: 'DELETE',
-        data: {
-            _token: '{{ csrf_token() }}'
-        },
-        success: function (response) {
-            console.log(response);
-            toastr.success(response.message || 'Wishlist cleared successfully!');
-            console.log('Wishlist cleared successfully');
-            setTimeout(function () {
-                window.location.reload();
-            }, 1000);
-        },
-        error: function (xhr) {
-            toastr.error('Failed to clear wishlist.');
-            console.error(xhr.responseText);
-        }
-    });
-});
-
-        
-    });
-
-</script>
-@endpush
