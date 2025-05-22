@@ -2,8 +2,8 @@
 @section('content')
     <div class="page-wrapper">
         <div class="content">
-            <x-breadcrumb-modal title="Product Variant List" sub-title="Manage Your Product Variants" button="Add Variant" modal-id="add-variant" />
-
+            <x-breadcrumb title="Product Variant List" sub-title="Manage Your Product Variants" button="Add Product Variant"
+                button-route="admin.product-variants.create" />
             <!-- /product list -->
             <div class="card table-list-card">
                 <div class="card-body">
