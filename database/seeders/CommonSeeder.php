@@ -5,10 +5,10 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\ProductAttribute;
+use App\Models\Attribute;
 use App\Models\SubCategory;
 use App\Models\Category;
-use App\Models\ProductAttributeValue;
+use App\Models\AttributeValue;
 use Illuminate\Support\Facades\Hash;
 
 class CommonSeeder extends Seeder
@@ -18,14 +18,7 @@ class CommonSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'Admin',
-            'email' => 'superadmin@gmail.com',
-            'phone' => '01947116736',
-            'password' => Hash::make('12345678'),
-            'role' => 1,
-        ]);
-
+        
         Category::create([
             'name' => 'Mens Fashion',
             'slug' => 'mens-fashion',
@@ -40,28 +33,42 @@ class CommonSeeder extends Seeder
         ]);
 
 
-        ProductAttribute::create([
+        $size = Attribute::create([
             'name' => 'Size'
         ]);
 
-        ProductAttribute::create([
-            'name' => 'Color'
+         AttributeValue::create([
+            'name' => 'Small',
+            'attribute_id' => $size->id,
         ]);
 
-        ProductAttributeValue::create([
-            'value' => 'Small',
+        AttributeValue::create([
+            'name' => 'Medium',
+            'attribute_id' => $size->id,
         ]);
 
-        ProductAttributeValue::create([
-            'value' => 'Red',
+        AttributeValue::create([
+            'name' => 'Large',
+            'attribute_id' => $size->id,
         ]);
 
-        ProductAttributeValue::create([
-            'value' => 'Green',
+        $color = Attribute::create([
+            'name' => 'Color',
         ]);
 
-        ProductAttributeValue::create([
-            'value' => 'Black',
+        AttributeValue::create([
+            'name' => 'Red',
+            'attribute_id' => $color->id,
+        ]);
+
+        AttributeValue::create([
+            'name' => 'Green',
+            'attribute_id' => $color->id,
+        ]);
+
+        AttributeValue::create([
+            'name' => 'Black',
+            'attribute_id' => $color->id,
         ]);
 
     }
