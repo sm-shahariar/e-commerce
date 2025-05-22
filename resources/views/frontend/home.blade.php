@@ -1,279 +1,123 @@
-@extends('layouts.apps')
-@section('title', 'Home')
+@extends('layouts.apps') 
+
 @section('content')
-<!-- Creating the main content section with original sections and new Men’s, Women’s, Kids’ sections -->
-<section id="main-content" class="py-5 bg-offwhite">
-    <div class="container">
-        <!-- Top Picks Section (Original) -->
-        <div class="top-picks mb-5">
-            <h2 class="text-center mb-4">Top Picks</h2>
-            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-4 g-3">
-                <!-- Product Card 1 -->
-               @if ($products->count() == 0)
-               <p class="font-weight-bold bg-primary text-white rounded-pill p-2 text-center" style="margin-left: 38%; margin-top: 40px;">No Product Found</p>
-               @else
-               @foreach ($products as $product)
-                <div class="col">
-                    <div class="card h-100 shadow-sm small-card">
-                        <div class="card-img-wrapper position-relative">
-                        <img src="{{ $product->thumbnail }}" class="card-img-top" alt="{{ $product->name }}">
-                        <a href="{{ url('product-details/' . $product->id) }}" class="details-icon">
-                            <i class="fas fa-info-circle">
-                            </i></a>
-                        </div>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-overlay d-flex align-items-center">
+            <div class="container text-white">
+                <h1 class="display-4 fw-bold">Summer Sale is Live!</h1>
+                <p class="lead">Up to 50% off on selected items. Limited time offer.</p>
+                <a href="#" class="btn btn-primary btn-lg px-4 me-2">Shop Now</a>
+                <a href="#" class="btn btn-outline-light btn-lg px-4">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Categories -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Shop by Category</h2>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" class="card-img-top category-img" alt="Electronics">
                         <div class="card-body text-center">
-                            <h6 class="card-title">{{ $product->name }}</h6>
-                            <p class="card-text">৳{{ $product->price }}</p>
-                            <div class="d-flex justify-content-center gap-1">
-                                <!-- <a href="#" class="" title="Add to Cart">
-                                    <i class=""></i>
-                                </a> -->
-                                <form action="{{ route('cart.store', $product->id) }}" method="POST" class="cart-form" data-product-id="{{ $product->id }}" style="display:inline;">
+                            <h5 class="card-title">Electronics</h5>
+                            <a href="#" class="btn btn-outline-primary">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" class="card-img-top category-img" alt="Fashion">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Fashion</h5>
+                            <a href="#" class="btn btn-outline-primary">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1556911220-bff31c812dba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" class="card-img-top category-img" alt="Home & Garden">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Home & Garden</h5>
+                            <a href="#" class="btn btn-outline-primary">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1064&q=80" class="card-img-top category-img" alt="Beauty">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Beauty</h5>
+                            <a href="#" class="btn btn-outline-primary">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <h2>Featured Products</h2>
+                <a href="{{ url('products') }}" class="btn btn-outline-primary">View All</a>
+            </div>
+            <div class="row">
+                <!-- Product 1 -->
+            @foreach ($products as $product)
+                <div class="col-md-3">
+                    <div class="card h-100">
+                        <div class="action-icons">
+                            <a href="{{ route('wishlist.store', $product->id) }}" title="Add to Wishlist"><i class="fas fa-heart"></i></a>
+                            
+                            <a href="{{ route('product.show',['slug' => $product->slug]) }}" title="Quick View"><i class="fas fa-eye"></i></a>
+                        </div>
+                        <img src="{{ $product->thumbnail }}" class="card-img-top product-img" alt="Product 1">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ $product->name }}</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-danger">৳ {{ $product->variants->first()->price }}</span>
+                                </div>
+                                <form action="{{ route('cart.store', $product->id) }}" method="POST" class="cart-form" style="display:inline;">
                                     @csrf
-                                    <button type="submit" class="btn btn-primary btn-xs" title="Add to Cart">
-                                        <i class="fa fa-shopping-cart"></i>
+                                    <input type="hidden" name="product_variant_id" value="{{ $product->variants->first()->id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Add to Cart">
+                                        <i class="fas fa-cart-plus"></i>
                                     </button>
                                 </form>
-                                <a href="{{ route('product.order', $product->id) }}" class="btn btn-primary btn-xs">Order Now</a>
-                                <form action="{{ route('wishlist.store', $product->id) }}" method="POST" class="wishlist-form" data-product-id="{{ $product->id }}" style="display:inline;">
-                                    @csrf
-                                    <input type="hidden" name="user_id" value="{{ auth()->id() }}">
-                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <button type="submit" class="btn btn-outline-secondary btn-xs" title="Add to Wishlist">
-                                        <i class="fa fa-heart"></i>
-                                    </button>
-                                </form>
+                                <a href="#" class=""></a>
                             </div>
                         </div>
                     </div>
                 </div>
-                @endforeach
-               @endif
-                <!-- Product Card 2 -->
+            @endforeach    
+               
             </div>
         </div>
+    </section>
 
-        <!-- New Collection Section (Original) -->
-        <div class="new-collection mb-5">
-            <h2 class="text-center mb-4">New Collection</h2>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                @if ($newProducts->count() == 0)
-                <p class="font-weight-bold bg-primary text-white rounded-pill p-2 text-center" style="margin-left: 38%; margin-top: 40px;">No Product Found</p>
-                @else
-                    @foreach ($newProducts as $newProduct)
-                        <div class="col">
-                            <div class="card h-100 shadow-sm">
-                                <div class="card-img-wrapper position-relative">
-                                    <img src="{{ $newProduct->thumbnail }}" class="card-img-top" alt="{{ $newProduct->name }}">
-                                    <a href="{{ url('product-details/' . $newProduct->id) }}" class="details-icon" title="View Details">
-                                        <i class="fas fa-info-circle"></i>
-                                    </a>
-                                </div>
-                                <div class="card-body text-center">
-                                    <h5 class="card-title">{{ $newProduct->name }}</h5>
-                                    <p class="card-text">৳{{ $newProduct->price }}</p>
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a href="#" class="btn btn-primary btn-sm" title="Add to Cart">
-                                            <i class="fa fa-shopping-cart"></i>
-                                        </a>
-                                        <a href="{{ route('product.order', $newProduct->id) }}" class="btn btn-primary btn-sm">Order Now</a>
-                                        <a href="#" class="btn btn-outline-secondary btn-sm" title="Add to Wishlist">
-                                            <i class="fa fa-heart"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                @endif
-            </div>
-        </div>
-
-        <!-- Most Sold Products Section (Original) -->
-        <div class="most-sold mb-5">
-            <h2 class="text-center mb-4">Most Sold Products</h2>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                <!-- Product Card 1 -->
-               @if ($mostSoldProducts->count() == 0)
-               <p class="font-weight-bold bg-primary text-white rounded-pill p-2 text-center" style="margin-left: 38%; margin-top: 40px;">No Product Found</p>
-               @else
-               @foreach ($mostSoldProducts as $mostSoldProduct)
-               <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-img-wrapper position-relative">
-                            <img src="{{ $mostSoldProduct->thumbnail }}" class="card-img-top" alt="Product 5">
-                            <a href="{{ url('product-details/' . $mostSoldProduct->id) }}" class="details-icon" title="View Details">
-                                <i class="fas fa-info-circle"></i>
-                            </a>
-                        </div>
-                        <div class="card-body text-center">
-                            <h5 class="card-title">{{ $mostSoldProduct->name }}</h5>
-                            <p class="card-text">৳{{ $mostSoldProduct->price }}</p>
-                            <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-primary btn-sm" title="Add to Cart">
-                                    <i class="fa fa-shopping-cart"></i>
-                                </a>
-                                <a href="{{ route('product.order', $mostSoldProduct->id) }}" class="btn btn-primary btn-sm">Order Now</a>
-                                <a href="#" class="btn btn-outline-secondary btn-sm" title="Add to Wishlist">
-                                    <i class="fa fa-heart"></i>
-                                </a>
-                            </div>
-                        </div>
+    <!-- Special Offer -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2>Limited Time Offer</h2>
+                    <p class="lead">Get on your first order when you sign up for our newsletter.</p>
+                    <div class="input-group mb-3">
+                        <input type="email" class="form-control" placeholder="Your email address">
+                        <button class="btn btn-dark" type="button">Subscribe</button>
                     </div>
                 </div>
-               @endforeach
-               @endif
-                
-            </div>
-        </div>
-
-        <!-- Men’s Products Section (New) -->
-        <div class="mens-products mb-5">
-            <h2 class="text-center mb-4">Men’s Products</h2>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                <!-- Men’s Product 1 -->
-                @if ($menProducts->count() == 0)
-                <p class="font-weight-bold bg-primary text-white rounded-pill p-2 text-center" style="margin-left: 38%; margin-top: 40px;">No Product Found</p>
-                @else
-                    @foreach ($menProducts as $menProduct)
-                    <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-img-wrapper position-relative">
-                            <img src="{{ $menProduct->thumbnail }}" class="card-img-top" alt="Men’s Shirt 1">
-                            <a href="{{ url('product-details/' . $menProduct->id) }}" class="details-icon" title="View Details">
-                                <i class="fas fa-info-circle"></i>
-                            </a>
-                        </div>
-                        <div class="card-body text-center">
-                            <h5 class="card-title">{{ $menProduct->name }}</h5>
-                            <p class="card-text">৳{{ $menProduct->price }}</p>
-                            <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-primary btn-sm" title="Add to Cart">
-                                    <i class="fa fa-shopping-cart"></i>
-                                </a>
-                                <a href="{{ route('product.order', $menProduct->id) }}" class="btn btn-primary btn-sm">Order Now</a>
-                                <a href="#" class="btn btn-outline-secondary btn-sm" title="Add to Wishlist">
-                                    <i class="fa fa-heart"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-md-6 text-center">
+                    <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" class="img-fluid rounded" alt="Special Offer" style="max-height: 300px;">
                 </div>
-                    @endforeach
-                @endif
             </div>
         </div>
+    </section>
 
-        <!-- Women’s Products Section (New) -->
-        <div class="womens-products mb-5">
-            <h2 class="text-center mb-4">Women’s Products</h2>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                <!-- Women’s Product 1 -->
-                @if ($womenProducts->count() == 0)
-                <p class="font-weight-bold bg-primary text-white rounded-pill p-2 text-center" style="margin-left: 38%; margin-top: 40px;">No Product Found</p>
-                @else
-                @foreach ($womenProducts as $womenProduct)
-                <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-img-wrapper position-relative">
-                            <img src="{{ $womenProduct->thumbnail }}" class="card-img-top" alt="Women’s Dress 1">
-                            <a href="{{ url('product-details/' . $womenProduct->id) }}" class="details-icon" title="View Details">
-                                <i class="fas fa-info-circle"></i>
-                            </a>
-                        </div>
-                        <div class="card-body text-center">
-                            <h5 class="card-title">{{ $womenProduct->name }}</h5>
-                            <p class="card-text">৳{{ $womenProduct->price }}</p>
-                            <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-primary btn-sm" title="Add to Cart">
-                                    <i class="fa fa-shopping-cart"></i>
-                                </a>
-                                <a href="{{ route('product.order', $womenProduct->id) }}" class="btn btn-primary btn-sm">Order Now</a>
-                                <a href="#" class="btn btn-outline-secondary btn-sm" title="Add to Wishlist">
-                                    <i class="fa fa-heart"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @endforeach
-                @endif
-            </div>
-        </div>
-
-        <!-- Kids’ Products Section (New) -->
-        <div class="kids-products mb-5">
-            <h2 class="text-center mb-4">Kids’ Products</h2>
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
-                <!-- Kids’ Product 1 -->
-                @if ($kidProducts->count() == 0)
-                    <p class="font-weight-bold bg-primary text-white rounded-pill p-2 text-center" style="margin-left: 38%; margin-top: 40px;">No Product Found</p>
-                @else
-                    @foreach ($kidProducts as $kidProduct)
-                    <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-img-wrapper position-relative">
-                            <img src="{{ $kidProduct->thumbnail }}" class="card-img-top" alt="Kids’ T-Shirt 1">
-                            <a href="{{ url('product-details/' . $kidProduct->id) }}" class="details-icon" title="View Details">
-                                <i class="fas fa-info-circle"></i>
-                            </a>
-                        </div>
-                        <div class="card-body text-center">
-                            <h5 class="card-title">{{ $kidProduct->name }}</h5>
-                            <p class="card-text">৳{{ $kidProduct->price }}</p>
-                            <div class="d-flex justify-content-center gap-2">
-                                <a href="#" class="btn btn-primary btn-sm" title="Add to Cart">
-                                    <i class="fa fa-shopping-cart"></i>
-                                </a>
-                                <a href="{{ route('product.order', $kidProduct->id) }}" class="btn btn-primary btn-sm">Order Now</a>
-                                <a href="#" class="btn btn-outline-secondary btn-sm" title="Add to Wishlist">
-                                    <i class="fa fa-heart"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                    @endforeach
-                @endif
-            </div>
-        </div>
-    </div>
-</section>
-@endsection
-
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-            toastr.options = {
-                closeButton: false,
-                progressBar: true,
-                positionClass: 'toast-top-right',
-                timeOut: 3000
-            };
-
-            $('.wishlist-form').on('submit', function (e) {
-                e.preventDefault(); // Prevent default form submission
-
-                const form = $(this);
-                const button = form.find('button');
-                const icon = button.find('i');
-
-                $.ajax({
-                    url: form.attr('action'),
-                    type: 'POST',
-                    data: form.serialize(),
-                    success: function (response) {
-                        toastr.success('Product added to wishlist successfully');
-                        icon.addClass('text-danger'); // make heart red
-                        localStorage.setItem('wishlist_product_' + response.product_id, 'added');
-                        button.prop('disabled', true);
-                    },
-                    error: function () {
-                        toastr.error('Something went wrong');
-                    }
-                });
-            });
-        });
-    </script>
-
-@endpush
+@endsection    
