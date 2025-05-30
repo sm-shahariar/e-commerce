@@ -8,21 +8,29 @@ use App\Http\Controllers\Admin\WishlistController;
 use App\Http\Controllers\Admin\CartController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\User\ProductSearchController;
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/product/show/{slug}', [HomeController::class, 'productDetails'])->name('product.show');
-Route::post('/wishlists/{product}', [WishlistController::class, 'store'])->name('wishlist.store');
 Route::get('/search/live', [SearchController::class, 'liveSearch'])->name('search.live');
-
-Route::get('/products', function () {
-    return view('frontend.product');
+Route::get('/products/search', [ProductSearchController::class, 'search'])->name('products.search');
+Route::get('/products', [ProductSearchController::class, 'index'])->name('products.index');
+Route::get('/products/category/{id}', [HomeController::class, 'productByCategory'])->name('products.category');
+Route::get('/about', function(){
+    return view('frontend.about');
 });
+Route::get('/contact', function(){
+    return view('frontend.contact');
+});
+
 
 // Authenticated user routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/wishlists', [WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlists/{product}', [WishlistController::class, 'store'])->name('wishlist.store');
     Route::delete('/wishlists-delete', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
+    Route::delete('wishlists/delete/{id}', [WishlistController::class, 'removeItem'])->name('wishlist.remove');
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
     Route::post('/cart/{productId}', [CartController::class, 'store'])->name('cart.store');
     Route::delete('/cart/clear', [CartController::class, 'clearCart'])->name('cart.clear');

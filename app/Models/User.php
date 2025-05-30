@@ -31,7 +31,7 @@ class User extends Authenticatable
     public const USER = 2;  // Customer
 
     public function getRoleAttribute() {
-        
+
         return match ($this->attributes['role']) {
             self::ADMIN => 'Admin',
             self::USER => 'Customer',
@@ -39,15 +39,15 @@ class User extends Authenticatable
         };
     }
 
-    
+
     // Add mutator if you need to set the role
     public function setRoleAttribute($value): void
     {
-        $this->attributes['role'] = in_array($value, [self::ADMIN, self::USER]) 
-            ? $value 
+        $this->attributes['role'] = in_array($value, [self::ADMIN, self::USER])
+            ? $value
             : self::USER;
     }
-    
+
 
 
     /**
@@ -71,5 +71,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

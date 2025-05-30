@@ -20,23 +20,20 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search', '');
+        $perPage = $request->input('per_page', 20);
 
-       $orderItems = OrderItem::with(['order', 'product'])->select('id', 'order_id', 'product_id', 'quantity', 'price', 'created_at')->get();
-       $customers = Customer::with('orders')->select('id', 'name', 'order_id', 'email', 'zip', 'city', 'phone', 'address', 'created_at')->get();
-       $products = Product::with('category')->get();
+        $orders = Order::with('orderItems','user', 'orderItems.variant', 'orderItems.variant.attributes', 'orderItems.variant.attributes.attribute', 'orderItems.variant.attributes.values', 'orderItems.variant.attributes.values.value')
+            ->when($search, function ($query) use ($search) {
+                $query->where('order_number', 'like', "%{$search}%");
+            })
+            ->select('id', 'order_number', 'phone_number', 'address','user_id', 'payment_type', 'status')
+            ->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
-       $orders = Order::with('customer')
-                ->where(function ($query) use ($search) {
-                    $query->where('order_number', 'like', "%{$search}%")
-                          ->orWhere('status', 'like', "%{$search}%")
-                          ->orWhere('customer_id', 'like', "%{$search}%");
-                })
-                ->select('id', 'customer_id', 'order_number', 'status', 'created_at')->paginate(10);
-
+            // dd($orders->toArray());
 
 
         if ($request->ajax()) {
-            return view('components.orders.table', ['orders' => $orders, 'orderItems' => $orderItems, 'customers' => $customers, 'products' => $products])->render();
+            return view('components.orders.table', ['orders' => $orders])->render();
         }
         return view('backend.orders.index', get_defined_vars());
     }
@@ -55,51 +52,52 @@ class OrderController extends Controller
         return view('frontend.order', compact('product', 'variants', 'productVariant'));
     }
 
-   public function store(Request $request)
-{
-    $request->validate([
-        'phone' => 'required|string',
-        'address' => 'required|string',
-        'payment_type' => 'required|string|in:cash_on_delivery,online_payment',
-    ]);
+    public function store(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string',
+            'address' => 'required|string',
+            'payment_type' => 'required|string|in:cash_on_delivery,online_payment',
+        ]);
 
-    try {
-        DB::beginTransaction();
-        $order = new Order();
-        $order->order_number = 'ORD-' . time();
-        $order->status = 1;
-        $order->user_id = auth()->user()->id;
-        $order->phone_number = $request->phone;
-        $order->address = $request->address;
-        $order->payment_type = $request->payment_type;
-        $order->save();
+        try {
+            DB::beginTransaction();
+            $order = new Order();
+            $order->order_number = 'ORD-' . time();
+            $order->status = 1;
+            $order->user_id = auth()->user()->id;
+            $order->phone_number = $request->phone;
+            $order->address = $request->address;
+            $order->note = $request->note ?? '';
+            $order->payment_type = $request->payment_type;
+            $order->save();
 
-        $cart = Cart::where('user_id', auth()->user()->id)->get();
+            $cart = Cart::where('user_id', auth()->user()->id)->get();
 
 
-        foreach ($cart as $item) {
-            $price = $item->productVariant->price;
+            foreach ($cart as $item) {
+                $price = $item->productVariant->price;
 
-            $orderItem = new OrderItem();
-            $orderItem->order_id = $order->id;
-            $orderItem->product_id = $item->product_id;
-            $orderItem->product_variant_id = $item->product_variant_id;
-            $orderItem->quantity = $item->quantity;
-            $orderItem->price = $price;
-            $orderItem->save();
+                $orderItem = new OrderItem();
+                $orderItem->order_id = $order->id;
+                $orderItem->product_id = $item->product_id;
+                $orderItem->product_variant_id = $item->product_variant_id;
+                $orderItem->quantity = $item->quantity;
+                $orderItem->price = $price;
+                $orderItem->save();
+            }
+
+            //clear cart
+            Cart::where('user_id', auth()->user()->id)->delete();
+
+            DB::commit();
+            return redirect()->route('home')->with('success', 'Order created successfully');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            \Log::error('Error creating order: ' . $th->getMessage());
+            return redirect()->back()->with('error', 'Error creating order');
         }
-
-        //clear cart
-        Cart::where('user_id', auth()->user()->id)->delete();
-
-        DB::commit();
-        return redirect()->route('home')->with('success', 'Order created successfully');
-    } catch (\Throwable $th) {
-        DB::rollBack();
-        \Log::error('Error creating order: ' . $th->getMessage());
-        return redirect()->back()->with('error', 'Error creating order');
     }
-}
 
 
 
@@ -114,6 +112,4 @@ class OrderController extends Controller
         $order->update(['status' => $request->status]);
         return redirect()->back()->with('success', 'Order status updated successfully');
     }
-
-
 }

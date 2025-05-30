@@ -37,17 +37,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-4 col-sm-6 col-12 d-flex">
-                    <div class="dash-widget dash3 w-100">
-                        <div class="dash-widgetimg">
-                            <span><img src="{{ URL::asset('/build/img/icons/dash4.svg') }}" alt="img"></span>
-                        </div>
-                        <div class="dash-widgetcontent">
-                            <h5>৳<span class="counters" data-count="3094945">3094945</span></h5>
-                            <h6>Total Expense Amount</h6>
-                        </div>
-                    </div>
-                </div>
+
                 <div class="row">
                     <div class="col-xl-3 col-sm-6 col-12 d-flex">
                         <a href="{{ url('vehicles') }}" class="dash-count text-decoration-none w-100 vehicle"
@@ -89,191 +79,169 @@
                     </div>
                 </div>
 
-            <!-- Button trigger modal -->
-            <div class="row">
-                <div class="col-xl-7 col-sm-12 col-12 d-flex">
-                    <div class="card flex-fill">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">Purchase & Sales <span id="selected-year">2025</span></h5>
-                            <div class="graph-sets">
-                                <ul class="mb-0">
-                                    <li>
-                                        <span>Purchase</span>
-                                    </li>
-                                    <li>
-                                        <span>Sales</span>
-                                    </li>
-                                </ul>
-                                <div class="dropdown dropdown-wraper">
-                                    <button class="btn btn-light btn-sm dropdown-toggle" type="button"
-                                        id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                        2025
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="year-dropdown">
-                                        <!-- @for ($y = date('Y'); $y >= date('Y') - 5; $y--) -->
-                                            <li>
-                                                <a href="javascript:void(0);" class="dropdown-item" data-year="2025">2025</a>
-                                            </li>
-                                        <!-- @endfor -->
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Button trigger modal -->
+                <div class="mb-5">
+                    <h2 class="mb-4">Recent Orders</h2>
+                    <div class="card shadow-sm border-0">
                         <div class="card-body">
-                            {{-- <div id="sales_charts"></div> --}}
-                            <canvas id="chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-5 col-sm-12 col-12 d-flex">
-                    <div class="card flex-fill default-cover mb-4">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4 class="card-title mb-0">Recent Purchase</h4>
-                            <div class="view-all-link">
-                                <a href="#" class="view-all d-flex align-items-center">
-                                    View All<span class="ps-2 d-flex align-items-center"><i data-feather="arrow-right"
-                                            class="feather-16"></i></span>
-                                </a>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive dataview">
-                                <table class="table dashboard-recent-products">
-                                    <thead>
+                            <div class="table-responsive">
+                                <table class="table table-bordered align-middle text-center">
+                                    <thead class="table-light">
                                         <tr>
-                                            <th>Parts</th>
-                                            <th>Price</th>
+                                            <th scope="col">SL</th>
+                                            <th scope="col">Order No</th>
+                                            <th scope="col">User Name</th>
+                                            <th scope="col">Product Name</th>
+                                            <th scope="col">Quantity</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">Attributes</th>
+                                            <th scope="col">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @forelse ($orders as $order)
+                                            @php
+                                                $orderLoop = $loop;
+                                                $orderItemsCount = count($order->orderItems);
+                                            @endphp
+                                            @foreach ($order->orderItems as $item)
+                                                <tr>
+                                                    @if ($loop->first)
+                                                        <td rowspan="{{ $orderItemsCount }}">{{ $orderLoop->iteration }}
+                                                        </td>
+                                                        <td rowspan="{{ $orderItemsCount }}">{{ $order->order_number }}
+                                                        </td>
+                                                        <td rowspan="{{ $orderItemsCount }}">
+                                                            {{ $order->user->name ?? 'N/A' }}</td>
+                                                    @endif
+
+                                                    <td>{{ $item->product->name ?? 'N/A' }}</td>
+                                                    <td>{{ $item->quantity }}</td>
+                                                    <td>{{ number_format($item->price, 2) }}</td>
+                                                    <td>
+                                                        @if ($item->variant && $item->variant->attributes->count())
+                                                            @foreach ($item->variant->attributes as $attribute)
+                                                                <span class="badge bg-primary mb-1">
+                                                                    {{ $attribute->attribute->name ?? '' }}:
+                                                                    {{ $attribute->values->pluck('value.name')->implode(', ') }}
+                                                                </span><br>
+                                                            @endforeach
+                                                        @else
+                                                            <span class="text-muted">N/A</span>
+                                                        @endif
+                                                    </td>
+
+                                                    @if ($loop->first)
+                                                        <td rowspan="{{ $orderItemsCount }}">
+                                                            @if ($order->status == 1)
+                                                                <span class="badge bg-warning">Pending</span>
+                                                            @elseif ($order->status == 2)
+                                                                <span class="badge bg-info">Processing</span>
+                                                            @elseif ($order->status == 3)
+                                                                <span class="badge bg-danger">Cancelled</span>
+                                                            @elseif($order->status == 4)
+                                                                <span class="badge bg-success">Delivered</span>
+                                                            @endif
+                                                        </td>
+                                                    @endif
+                                                </tr>
+                                            @endforeach
+                                        @empty
                                             <tr>
-                                                <td>
-                                                    <div class="productimgname">
-                                                        <a href="javascript:void(0);" class="product-img stock-img">
-                                                            <img src="{{ asset('build/img/no-image.svg') }}"
-                                                                alt="product" height="50px" width="30px">
-                                                        </a>
-                                                        <a href="javascript:void(0);">Full Pant</a>
-                                                    </div>
-                                                </td>
-                                                <td>890</td>
+                                                <td colspan="8" class="text-center text-muted">No Order Found</td>
                                             </tr>
+                                        @endforelse
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">Recent Service</h4>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive dataview">
-                        <table class="table dashboard-expired-products">
-                            <thead>
-                                <tr>
-                                    <th>Service Type</th>
-                                    <th>Total Price</th>
-                                    <th>Given Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                    <tr>
-                                        <td>
-                                            <a href="#" data-bs-toggle="modal" style="cursor: pointer; text-decoration: none;" class="service-name">
-                                        </td>
-                                        <td>5945</td>
-                                        <td>5945</td>
-                                    </tr>
-                               
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+
+                </main>
             </div>
         </div>
-    </div>
-@endsection
+    @endsection
 
 
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    $(document).ready(function() {
-        // Pass the chart data from Blade to JavaScript
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            $(document).ready(function() {
+                // Pass the chart data from Blade to JavaScript
 
-        // Initialize the chart with the data
-        renderChart(chartData);
+                // Initialize the chart with the data
+                renderChart(chartData);
 
-        $('#year-dropdown').on('click', 'a', function() {
-            var year = $(this).data('year');
-            $('#selected-year').text(year);
-            
-            fetchSalePurchaseData(year);
-        });
+                $('#year-dropdown').on('click', 'a', function() {
+                    var year = $(this).data('year');
+                    $('#selected-year').text(year);
 
-        function fetchSalePurchaseData(year) {
-            $.ajax({
-                url: '/',
-                method: 'GET',
-                data: { year: year }, 
-                dataType: 'json', // Explicitly request JSON
-                success: function(response) {
-                    if (response && response.chartData) {
-                        renderChart(response.chartData);
-                    } else {
-                        console.error("Invalid response format:", response);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("Error fetching data:", error);
-                }
-            });
-        }
+                    fetchSalePurchaseData(year);
+                });
 
-        // Function to render the chart
-        function renderChart(data) {
-            // console.log(data);
-            
-            var ctx = document.getElementById('chart').getContext('2d');
-            if (window.myChart) {
-                window.myChart.destroy();
-            }
-            window.myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.map(item => item.month), 
-                    datasets: [{
-                        label: 'Sales',
-                        data: data.map(item => item.sales),
-                        backgroundColor: 'rgba(243, 21, 21, 0.98)',
-                        borderColor: 'rgb(31, 104, 104)',
-                        borderWidth: 1,
-                        // borderRadius: 8 
-                        
-                    },
-                    {
-                        label: 'Purchase',
-                        data: data.map(item => item.purchases),
-                        backgroundColor: 'rgb(13, 230, 78)',
-                        borderColor: 'rgb(90, 25, 219)',
-                        borderWidth: 1,
-                        // borderRadius: 8 
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
+                function fetchSalePurchaseData(year) {
+                    $.ajax({
+                        url: '/',
+                        method: 'GET',
+                        data: {
+                            year: year
+                        },
+                        dataType: 'json', // Explicitly request JSON
+                        success: function(response) {
+                            if (response && response.chartData) {
+                                renderChart(response.chartData);
+                            } else {
+                                console.error("Invalid response format:", response);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("Error fetching data:", error);
                         }
+                    });
+                }
+
+                // Function to render the chart
+                function renderChart(data) {
+                    // console.log(data);
+
+                    var ctx = document.getElementById('chart').getContext('2d');
+                    if (window.myChart) {
+                        window.myChart.destroy();
                     }
+                    window.myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.map(item => item.month),
+                            datasets: [{
+                                    label: 'Sales',
+                                    data: data.map(item => item.sales),
+                                    backgroundColor: 'rgba(243, 21, 21, 0.98)',
+                                    borderColor: 'rgb(31, 104, 104)',
+                                    borderWidth: 1,
+                                    // borderRadius: 8
+
+                                },
+                                {
+                                    label: 'Purchase',
+                                    data: data.map(item => item.purchases),
+                                    backgroundColor: 'rgb(13, 230, 78)',
+                                    borderColor: 'rgb(90, 25, 219)',
+                                    borderWidth: 1,
+                                    // borderRadius: 8
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
                 }
             });
-        }
-    });
-</script>
-@endpush
-    
+        </script>
+    @endpush

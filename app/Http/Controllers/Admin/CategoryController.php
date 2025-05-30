@@ -22,13 +22,13 @@ class CategoryController extends Controller
         // return response()->json(['status' => 'success', 'data' => $categories], 200);
     }
 
-    public function store(Request $request) 
+    public function store(Request $request)
     {
         // dd($request->all());
         $request->validate([
-                'name' => 'required|string|max:255',
-                'slug' => 'required|string|max:255|unique:categories,slug',
-                'description' => 'nullable|string|max:1000',
+            'name' => 'required|string|max:255',
+            'slug' => 'required|string|max:255|unique:categories,slug',
+            'description' => 'nullable|string|max:1000',
         ]);
 
         DB::beginTransaction();
@@ -41,11 +41,13 @@ class CategoryController extends Controller
                 'slug' => $request->slug,
                 'description' => $request->description,
             ]);
-            // dd($category);`
+            // dd($request->file('image'));
+            $category->image = $request->file('image');
+            $category->save();
+            // dd($category->toArray());
             DB::commit();
             return response()->json(['type' => 'success', 'message' => 'Category created successfully.'], 200);
-
-        }catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json(['type' => 'error', 'message' => 'Failed to create category.'], 500);
         }
@@ -55,7 +57,7 @@ class CategoryController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:categories,slug,'.$category->id,
+            'slug' => 'required|string|max:255|unique:categories,slug,' . $category->id,
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -64,10 +66,12 @@ class CategoryController extends Controller
         try {
 
             $category->update($data);
+            $category->image = $request->file('image');
+            $category->save();
+            
             DB::commit();
             return response()->json(['type' => 'success', 'message' => 'Category updated successfully.', 'data' => $category], 200);
-
-        }catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json(['type' => 'error', 'message' => 'Failed to update category.'], 500);
         }
@@ -85,7 +89,7 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
         $category->status = $request->status;
         $category->save();
-    
+
         return response()->json([
             'type' => 'success',
             'message' => 'Status updated successfully'

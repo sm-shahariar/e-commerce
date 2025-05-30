@@ -15,17 +15,27 @@
                 <td>
                     {{ $loop->iteration + $categories->firstItem() - 1 }}
                 </td>
-                <td>{{ $category->name }}</td>
+                <td style="vertical-align: middle;">
+                    <div class="categoryImage ms-2 d-flex align-items-center">
+                        <a href="javascript:void(0);" class="product-img stock-img me-2">
+                            <img src="{{ $category->image ?: asset('build/img/no-image.svg') }}" alt="product"
+                                style="height: 50px; width: 60px;">
+                        </a>
+                        <a href="javascript:void(0);" class="mb-0">{{ $category->name }}</a>
+                    </div>
+                </td>
                 <td>{{ $category->slug }}</td>
                 <td>
-                    <form class="status-form" action="{{ route('admin.categories.status', $category->id) }}" method="POST" data-id="{{ $category->id }}">
+                    <form class="status-form" action="{{ route('admin.categories.status', $category->id) }}"
+                        method="POST" data-id="{{ $category->id }}">
                         @csrf
                         @method('PATCH')
                         <label class="toggle-switch">
-                            <input type="checkbox" class="status-checkbox" {{ $category->status == '1' ? 'checked' : '' }}>
+                            <input type="checkbox" class="status-checkbox"
+                                {{ $category->status == '1' ? 'checked' : '' }}>
                             <span class="slider"></span>
                         </label>
-                        
+
                         <input type="hidden" name="status" value="{{ $category->status }}">
                     </form>
 
@@ -37,8 +47,8 @@
                             data-bs-target="#edit-category-{{ $category->id }}">
                             <i data-feather="edit" class="feather-edit"></i>
                         </a>
-                        <form action="{{ route('admin.categories.destroy', $category->id) }}"
-                            method="post" class="delete-form">
+                        <form action="{{ route('admin.categories.destroy', $category->id) }}" method="post"
+                            class="delete-form">
                             @csrf
                             @method('DELETE')
                             <a class="confirm-text2 p-2" href="javascript:void(0);">
@@ -59,26 +69,49 @@
                                     <div class="page-title">
                                         <h4>Edit Category</h4>
                                     </div>
-                                    <button type="button" class="close" data-bs-dismiss="modal"
-                                        aria-label="Close">
+                                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                 </div>
                                 <div class="modal-body custom-modal-body new-employee-field">
                                     <form class="editForm" data-id="{{ $category->id }}"
-                                        action="{{ route('admin.categories.update', $category->id) }}"
-                                        method="POST" enctype="multipart/form-data">
+                                        action="{{ route('admin.categories.update', $category->id) }}" method="POST"
+                                        enctype="multipart/form-data">
                                         @csrf
                                         @method('PUT')
                                         <div class="mb-3">
                                             <label class="form-label">Category*</label>
-                                            <input type="text" class="form-control"
-                                                value="{{ $category->name }}" name="name">
+                                            <input type="text" class="form-control" value="{{ $category->name }}"
+                                                name="name">
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Slug*</label>
-                                            <input type="text" class="form-control"
-                                                value="{{ $category->slug }}" name="slug">
+                                            <input type="text" class="form-control" value="{{ $category->slug }}"
+                                                name="slug">
+                                        </div>
+                                        {{-- @dd($category->description) --}}
+                                        <div class="mb-3">
+                                            <label class="form-label">Description</label>
+                                            <input type="text" name="description" class="form-control"
+                                               value="{{ $category->description }}">
+                                        </div>
+                                        <label class="form-label">Logo</label>
+                                        <div class="profile-pic-upload mb-3 image-container">
+                                            <div class="profile-pic brand-pic">
+                                                <span>
+                                                    <img src="{{ $category->image ?: asset('build/img/icons/upload.svg') }}"
+                                                        class="image-preview" alt="">
+                                                </span>
+                                                <a href="javascript:void(0);" class="remove-photo d-none">
+                                                    <i data-feather="x" class="x-square-add"></i>
+                                                </a>
+                                            </div>
+                                            <div class="image-upload mb-0">
+                                                <input class="image-input" type="file" name="image">
+                                                <div class="image-uploads">
+                                                    <h4>Change Image</h4>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="modal-footer-btn">
                                             <button type="button" class="btn btn-cancel me-2"

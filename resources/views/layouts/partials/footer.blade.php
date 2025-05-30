@@ -14,8 +14,8 @@
                 <div class="col-md-3 mb-4">
                     <h5>Quick Links</h5>
                     <ul class="list-unstyled">
-                        <li><a href="#" class="text-white text-decoration-none">Home</a></li>
-                        <li><a href="#" class="text-white text-decoration-none">Shop</a></li>
+                        <li><a href="{{ route('home') }}" class="text-white text-decoration-none">Home</a></li>
+                        <li><a href="{{ route('products.index') }}" class="text-white text-decoration-none">Shop</a></li>
                         <li><a href="#" class="text-white text-decoration-none">About Us</a></li>
                         <li><a href="#" class="text-white text-decoration-none">Contact</a></li>
                         <li><a href="#" class="text-white text-decoration-none">FAQ</a></li>
@@ -24,7 +24,7 @@
                 <div class="col-md-3 mb-4">
                     <h5>Customer Service</h5>
                     <ul class="list-unstyled">
-                        <li><a href="#" class="text-white text-decoration-none">My Account</a></li>
+                        <li><a href="{{ route('user.dashboard') }}" class="text-white text-decoration-none">My Account</a></li>
                         <li><a href="#" class="text-white text-decoration-none">Order Tracking</a></li>
                         <li><a href="#" class="text-white text-decoration-none">Returns & Refunds</a></li>
                         <li><a href="#" class="text-white text-decoration-none">Shipping Info</a></li>

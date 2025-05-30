@@ -55,7 +55,7 @@
                                                         class="btn btn-outline-secondary btn-sm quantity-btn minus px-3">
                                                         <i class="fas fa-minus"></i>
                                                     </button>
-                                                    <input type="number" class="form-control quantity-input mx-2"
+                                                    <input class="form-control quantity-input mx-2"
                                                         value="{{ $cart->quantity }}" min="1">
                                                     <button class="btn btn-outline-secondary btn-sm quantity-btn plus px-3">
                                                         <i class="fas fa-plus"></i>
@@ -66,17 +66,17 @@
                                             <div class="col-md-2 text-md-center mt-3 mt-md-0">
                                                 <p class="mb-1 text-muted small">Unit Price</p>
                                                 <h5 class="current-price mb-1">
-                                                    ${{ number_format($cart->productVariant->price, 2) }}</h5>
+                                                    ৳{{ number_format($cart->productVariant->price, 2) }}</h5>
                                                 @if ($cart->product->discount > 0)
                                                     <p class="original-price mb-0">
-                                                        ${{ number_format($cart->productVariant->price * (1 + $cart->product->discount / 100), 2) }}
+                                                        ৳{{ number_format($cart->productVariant->price * (1 + $cart->product->discount / 100), 2) }}
                                                     </p>
                                                 @endif
                                             </div>
                                             <div class="col-md-2 text-md-center mt-3 mt-md-0">
                                                 <p class="mb-1 text-muted small">Total</p>
                                                 <h5 class="item-total mb-2">
-                                                    ${{ number_format($cart->productVariant->price * $cart->quantity, 2) }}
+                                                    ৳{{ number_format($cart->productVariant->price * $cart->quantity, 2) }}
                                                 </h5>
                                                 <a href="" class="btn btn-link remove-item p-0">
 
@@ -133,15 +133,15 @@
                             </h5>
 
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Subtotal (<span class="total-items">3</span> items)</span>
-                                <span class="summary-value">$<span class="subtotal">314.97</span></span>
+                                <span>Subtotal (<span class="total-items"></span> items)</span>
+                                <span class="summary-value">৳<span class="subtotal"></span></span>
                             </div>
 
                             <hr>
 
                             <div class="d-flex justify-content-between mb-4">
                                 <h5>Total</h5>
-                                <h5 class="summary-value">$<span class="total-price">333.86</span></h5>
+                                <h5 class="summary-value">৳<span class="total-price"></span></h5>
                             </div>
                             <form action="{{ route('orders.store') }}" method="POST">
                                 @csrf
@@ -153,6 +153,11 @@
                                 <div class="form-group mb-3">
                                     <label for="address">Delivery Address</label>
                                     <input type="text" class="form-control" id="address" name="address" required>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="address">Note</label>
+                                    <input type="text" class="form-control" id="note" name="note">
                                 </div>
 
 
@@ -192,8 +197,12 @@
 @endsection
 
 <script>
-    
     document.addEventListener('DOMContentLoaded', function() {
+
+        updateCartSummary();
+        updateCartCount();
+
+        
         // Color selection
         document.querySelectorAll('.color-option').forEach(color => {
             color.addEventListener('click', function() {
@@ -241,6 +250,7 @@
                 updateCartItem(this.closest('.cart-item'));
             });
         });
+
 
         // Remove item
         document.querySelectorAll('.remove-item').forEach(button => {
@@ -293,17 +303,7 @@
                 hideLoading(this);
                 this.disabled = false;
 
-                // Mock response
-                if (promoCode.toUpperCase() === 'DISCOUNT10') {
-                    document.getElementById('promoCode').classList.remove('is-invalid');
-                    document.getElementById('promoCode').classList.add('is-valid');
-                    promoFeedback.textContent = '';
-                    applyDiscount(10);
-                    alert('Promo code applied: 10% discount');
-                } else {
-                    document.getElementById('promoCode').classList.add('is-invalid');
-                    promoFeedback.textContent = 'Invalid promo code';
-                }
+
             }, 1000);
         });
 
@@ -320,13 +320,13 @@
             // Simulate AJAX call to update cart
             setTimeout(() => {
                 const quantity = parseInt(item.querySelector('.quantity-input').value);
-                const priceText = item.querySelector('.text-danger') ?
-                    item.querySelector('.text-danger').textContent.replace('$', '') :
-                    item.querySelector('h5').textContent.replace('$', '');
+                const priceText = item.querySelector('.current-price') ?
+                    item.querySelector('.current-price').textContent.replace('৳', '') :
+                    item.querySelector('h5').textContent.replace('৳', '');
                 const price = parseFloat(priceText);
                 const total = (quantity * price).toFixed(2);
 
-                item.querySelector('.item-total').textContent = '$' + total;
+                item.querySelector('.item-total').textContent = '৳' + total;
                 updateCartSummary();
                 hideLoading(item);
             }, 800);
@@ -339,20 +339,21 @@
 
             document.querySelectorAll('.cart-item').forEach(item => {
                 const quantity = parseInt(item.querySelector('.quantity-input').value);
-                const priceText = item.querySelector('.text-danger') ?
-                    item.querySelector('.text-danger').textContent.replace('$', '') :
-                    item.querySelector('h5').textContent.replace('$', '');
+                const priceText = item.querySelector('.current-price') ?
+                    item.querySelector('.current-price').textContent.replace('৳', '') :
+                    item.querySelector('h5').textContent.replace('৳', '');
                 const price = parseFloat(priceText);
+
+                console.log(price, quantity);
 
                 subtotal += quantity * price;
                 itemCount += quantity;
             });
 
-            const tax = (subtotal * 0.06).toFixed(2);
-            const total = (parseFloat(subtotal) + parseFloat(tax)).toFixed(2);
 
+            const total = (parseFloat(subtotal));
+            console.log(total);
             document.querySelector('.subtotal').textContent = subtotal.toFixed(2);
-            document.querySelector('.tax').textContent = tax;
             document.querySelector('.total-price').textContent = total;
             document.querySelector('.total-items').textContent = itemCount;
         }
@@ -367,19 +368,7 @@
             document.querySelector('.badge').textContent = itemCount;
         }
 
-        // Apply discount
-        function applyDiscount(percent) {
-            let subtotal = parseFloat(document.querySelector('.subtotal').textContent);
-            const discount = subtotal * (percent / 100);
-            subtotal -= discount;
 
-            const tax = (subtotal * 0.06).toFixed(2);
-            const total = (parseFloat(subtotal) + parseFloat(tax)).toFixed(2);
-
-            document.querySelector('.subtotal').textContent = subtotal.toFixed(2);
-            document.querySelector('.tax').textContent = tax;
-            document.querySelector('.total-price').textContent = total;
-        }
 
         // Show loading spinner
         function showLoading(element) {

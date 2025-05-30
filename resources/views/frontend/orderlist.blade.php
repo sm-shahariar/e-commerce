@@ -1,77 +1,139 @@
 @extends('layouts.apps')
 @section('content')
 
-<div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">Orders</h2>
-    </div>
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">Order Management</h2>
+                        <div class="d-flex">
+                            <input type="text" class="form-control me-2" placeholder="Search orders...">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-filter me-2"></i>Filter
+                            </button>
+                        </div>
+                    </div>
 
-    <div class="card shadow-lg border-0 rounded-3">
-        <div class="card-body p-4">
-            <div class="table-responsive">
-                <table class="table table-hover table-borderless align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th scope="col" class="text-white fw-semibold">Order ID</th>
-                            <th scope="col" class="text-white fw-semibold">Order Number</th>
-                            <th scope="col" class="text-white fw-semibold">Product</th>
-                            <th scope="col" class="text-white fw-semibold">Quantity</th>
-                            <th scope="col" class="text-white fw-semibold">Price</th>
-                            <th scope="col" class="text-white fw-semibold">Status</th>
-                            <th scope="col" class="text-white fw-semibold">Date</th>
-                            <th scope="col" class="text-white fw-semibold">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($orderItems as $orderItem)
-                            <tr>
-                                <td>{{ $loop->iteration + $orderItems->firstItem() - 1 }}</td>
-                                <td>{{ $orderItem->order->order_number }}</td>
-                                <td>{{ $orderItem->product->name }}</td>
-                                <td>{{ $orderItem->quantity }}</td>
-                                <td>${{ number_format($orderItem->product->price, 2) }}</td>
-                                <td>
-                                    @if($orderItem->order->status == 1)
-                                        <span class="badge bg-warning text-dark rounded-pill">Pending</span>
-                                    @elseif($orderItem->order->status == 2)
-                                        <span class="badge bg-success rounded-pill">Delivered</span>
-                                    @else
-                                        <span class="badge bg-danger rounded-pill">Canceled</span>
-                                    @endif
-                                </td>
-                                <td>{{ $orderItem->created_at->format('M d, Y') }}</td>
-                                <td>
-                                    <div class="dropdown">
-                                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            Actions
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                            <li>
-                                                <form action="#" method="POST" class="d-inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to delete this order?')">Delete</button>
-                                                </form>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-4 text-muted">No orders found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive rounded-3">
+                            <table class="table table-hover mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="py-3 px-4 text-start">SL</th>
+                                        <th class="py-3 px-4 text-start">Order No</th>
+                                        <th class="py-3 px-4 text-start">Customer</th>
+                                        <th class="py-3 px-4 text-start">Product</th>
+                                        <th class="py-3 px-4 text-end">Qty</th>
+                                        <th class="py-3 px-4 text-end">Price</th>
+                                        <th class="py-3 px-4 text-start">Attributes</th>
+                                        <th class="py-3 px-4 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="border-top-0">
+                                    @forelse ($orders as $order)
+                                        @php
+                                            $orderLoop = $loop;
+                                            $orderItemsCount = count($order->orderItems);
+                                        @endphp
+                                        @foreach ($order->orderItems as $item)
+                                            <tr class="border-bottom">
+                                                @if ($loop->first)
+                                                    <td class="py-3 px-4 align-top" rowspan="{{ $orderItemsCount }}">
+                                                        <span class="fw-medium">{{ $orderLoop->iteration }}</span>
+                                                    </td>
+                                                    <td class="py-3 px-4 align-top" rowspan="{{ $orderItemsCount }}">
+                                                        <span
+                                                            class="text-primary fw-medium">#{{ $order->order_number }}</span>
+                                                    </td>
+                                                    <td class="py-3 px-4 align-top" rowspan="{{ $orderItemsCount }}">
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="ms-3">
+                                                                <p class="mb-0 fw-medium">{{ $order->user->name ?? 'N/A' }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                @endif
 
-            <!-- Pagination -->
-            <div class="d-flex justify-content-end mt-4">
-                {{ $orderItems->links('pagination::bootstrap-5') }}
+                                                <td class="py-3 px-4">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="ms-3">
+                                                            <p class="mb-0 fw-medium">{{ $item->product->name ?? 'N/A' }}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="py-3 px-4 text-end">{{ $item->quantity }}</td>
+                                                <td class="py-3 px-4 text-end">${{ number_format($item->price, 2) }}</td>
+                                                <td class="py-3 px-4">
+                                                    @if ($item->variant && $item->variant->attributes->count())
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            @foreach ($item->variant->attributes as $attribute)
+                                                                <span class="badge bg-light text-dark border">
+                                                                    {{ $attribute->attribute->name ?? '' }}:
+                                                                    {{ $attribute->values->pluck('value.name')->implode(', ') }}
+                                                                </span>
+                                                            @endforeach
+                                                        </div>
+                                                    @else
+                                                        <span class="text-muted">N/A</span>
+                                                    @endif
+                                                </td>
+
+                                                @if ($loop->first)
+                                                    <td class="py-3 px-4 align-middle text-center"
+                                                        rowspan="{{ $orderItemsCount }}">
+                                                        @if ($order->status == 1)
+                                                            {{-- Allow canceling if order is pending --}}
+                                                            <form
+                                                                action="{{ route('admin.orders.updateStatus', $order->id) }}"
+                                                                method="POST" style="display: inline;">
+                                                                @csrf
+                                                                @method('PATCH')
+                                                                <input type="hidden" name="status" value="3">
+                                                                <button type="submit"
+                                                                    class="badges status-badge bg-warning text-white rounded"
+                                                                    style="border: none; background: none; padding: 5px 3px; cursor: pointer;">
+                                                                    Pending (Click to Cancel Order)
+                                                                </button>
+                                                            </form>
+                                                        @elseif ($order->status == 2)
+                                                            <span class="badges status-badge bg-info text-white px-2 py-2 rounded">Processing</span>
+                                                        @elseif ($order->status == 4)
+                                                            <span class="badges status-badge bg-success text-white px-2 py-2 rounded">Delivered</span>
+                                                        @elseif ($order->status == 3)
+                                                            <span class="badges status-badge bg-danger text-white px-2 py-2 rounded">Canceled</span>
+                                                        @endif
+
+                                                    </td>
+                                                @endif
+                                            </tr>
+                                        @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="8" class="py-4 text-center text-muted">
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <i class="fas fa-box-open fs-1 text-muted mb-2"></i>
+                                                    <p class="mb-0">No orders found</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if ($orders->hasPages())
+                            <div class="card-footer border-top py-3">
+                                <div class="d-flex justify-content-center">
+                                    {{ $orders->links('pagination::bootstrap-5') }}
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
 @endsection

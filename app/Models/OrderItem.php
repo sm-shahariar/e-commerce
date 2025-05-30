@@ -18,12 +18,8 @@ class OrderItem extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function variantAttributeValues()
-    {
-        return $this->belongsToMany(VariantAttributeValue::class);
-    }
 
-    public function variants()
+    public function variant()
     {
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }

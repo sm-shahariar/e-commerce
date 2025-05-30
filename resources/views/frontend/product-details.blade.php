@@ -18,14 +18,11 @@
                         id="mainProductImage" width="450" height="300">
                 </div>
                 <div class="thumbnails d-flex flex-wrap gap-2">
-                    <img src="#" class="img-thumbnail thumbnail active" width="80"
-                        data-fullsize="https://via.placeholder.com/600x800/EEE?text=Denim+Jacket+Front" alt="Front view">
-                    <img src="#" class="img-thumbnail thumbnail" width="80"
-                        data-fullsize="https://via.placeholder.com/600x800/DDD?text=Denim+Jacket+Back" alt="Back view">
-                    <img src="#" class="img-thumbnail thumbnail" width="80"
-                        data-fullsize="https://via.placeholder.com/600x800/CCC?text=Denim+Jacket+Side" alt="Side view">
-                    <img src="#" class="img-thumbnail thumbnail" width="80"
-                        data-fullsize="https://via.placeholder.com/600x800/BBB?text=Denim+Jacket+Detail" alt="Detail view">
+                    @if ($product->images && count($product->images) > 0)
+                        @foreach ($product->images as $image)
+                        <img src="{{ $image->url }}" class="img-thumbnail thumbnail active" width="80" alt="Front view">
+                        @endforeach
+                    @endif
                 </div>
             </div>
 
@@ -33,7 +30,7 @@
             <div class="col-lg-6">
                 <h1 class="mb-2">{{ $product->name }}</h1>
                 <div class="d-flex align-items-center mb-3">
-                    <span class="badge bg-success">In Stock: <span class="ms-2">{{ $product->stock }}</span></span>
+                    <span class="badge bg-success">In Stock: <span class="ms-2" id="productStock">{{ $product->stock }}</span></span>
                 </div>
 
                 <div class="price mb-3">
@@ -82,9 +79,16 @@
                     </form>
                 </div>
 
+                <form id="wishlist-form" action="{{ route('wishlist.store', $product->id) }}" method="POST"
+                    class="wishlist-form" style="display:inline;">
+                    @csrf
+                    <input type="hidden" name="product_variant_id"
+                        value="{{ $product->variants->first()->id }}">
+                </form>
+
                 <!-- Wishlist and Share -->
                 <div class="d-flex gap-3">
-                    <button class="btn btn-outline-secondary wishlist-btn">
+                    <button class="btn btn-outline-secondary wishlist-btn" form="wishlist-form">
                         <i class="far fa-heart me-2"></i> Add to Wishlist
                     </button>
                     <button class="btn btn-outline-secondary">
@@ -174,6 +178,9 @@
                 if (productVariationId) {
                     const price = getPrice(productVariationId);
                     $('#productPrice').html('৳ ' + price);
+                    const stock = getStock(productVariationId);
+                    $('#productStock').html(stock);
+
                     $('#productVariantId').val(productVariationId);
                     $('#addToCartBtn').prop('disabled', false);
                 } else {
@@ -228,6 +235,11 @@
                 return variant.price;
             }
 
+            function getStock(variationId) {
+                const product = @json($product);
+                const variant = product.variants.find(variant => variant.id === variationId);
+                return variant.qty;
+            }
 
             // Update stock information
             function updateStockInfo(stock) {
@@ -325,18 +337,6 @@
                             '<i class="fas fa-shopping-cart me-2"></i> Add to Cart');
                     }
                 });
-            });
-
-            // Add to wishlist with AJAX
-            $('.wishlist-btn').click(function() {
-                const variantId = $('#productVariantId').val();
-
-                if (!variantId) {
-                    toastr.error('Please select at least one option before adding to wishlist');
-                    return;
-                }
-
-
             });
 
             // Initial load

@@ -75,7 +75,7 @@
                                 <div class="col-md-5">
                                     <div class="form-group">
                                         <label>Attribute Values <span class="text-danger">*</span></label>
-                                        <select data-attribute-value="0" name="attributes[0][attribute_value_id][]" class="form-control select2 attribute-values" multiple required>
+                                        <select data-attribute-value="0" name="attributes[0][attribute_value_id][]" class="form-control select2 attribute-values" required>
                                         </select>
                                     </div>
                                 </div>
@@ -101,7 +101,7 @@
 
 @push('scripts')
 <script>
-    
+
   $(document).ready(function() {
     $('.select2').select2({ placeholder: 'Select an option', allowClear: true });
 
@@ -125,7 +125,7 @@
                 <div class="col-md-5">
                     <div class="form-group">
                         <label>Attribute Values <span class="text-danger">*</span></label>
-                        <select data-attribute-value="${index}" name="attributes[${index}][attribute_value_id][]" class="form-control select2 attribute-values" multiple required>
+                        <select data-attribute-value="${index}" name="attributes[${index}][attribute_value_id][]" class="form-control select2 attribute-values" required>
                         </select>
                     </div>
                 </div>
@@ -180,24 +180,24 @@
     $(document).on('change', '.attribute', function() {
         const attributeIndex = $(this).data('attribute');
         const attributeId = $(this).val();
-        
+
         if (!attributeId) return; // Skip if no attribute selected
-        
+
         $.ajax({
             url: '{{ url("admin/product-variants/values") }}' + '/' + attributeId,
             type: 'GET',
             success: function(response) {
                 // Find the corresponding values dropdown using data-attribute-value
                 const valueSelect = $(`select[data-attribute-value="${attributeIndex}"]`);
-                
+
                 // Clear existing options
                 valueSelect.empty();
-                
+
                 // Add new options from response
                 $.each(response, function(i, value) {
                     valueSelect.append(`<option value="${value.id}">${value.name}</option>`);
                 });
-                
+
                 // Refresh Select2
                 valueSelect.trigger('change');
             },

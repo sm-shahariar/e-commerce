@@ -31,6 +31,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->name('admin.')->grou
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
     Route::get('product-variants/values/{id}', [ProductVariantController::class, 'getValues'])->name('product-variants.get-values');
+    Route::patch('order/{order}', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
 
 });
 

@@ -108,179 +108,197 @@
                 <!-- Recent Orders Section -->
                 <div class="mb-5">
                     <h2 class="mb-4">Recent Orders</h2>
-                    <div class="card shadow-sm">
+                    <div class="card shadow-sm border-0">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
+                                <table class="table table-bordered align-middle text-center">
+                                    <thead class="table-light">
                                         <tr>
-                                            <th>Order ID</th>
-                                            <th>Date</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
+                                            <th scope="col">SL</th>
+                                            <th scope="col">Order No</th>
+                                            <th scope="col">User Name</th>
+                                            <th scope="col">Product Name</th>
+                                            <th scope="col">Quantity</th>
+                                            <th scope="col">Price</th>
+                                            <th scope="col">Attributes</th>
+                                            <th scope="col">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @php $rowIndex = 1; @endphp
-                                        @foreach ($orders as $order)
+                                        @forelse ($orders as $order)
+                                            @php
+                                                $orderLoop = $loop;
+                                                $orderItemsCount = count($order->orderItems);
+                                            @endphp
                                             @foreach ($order->orderItems as $item)
                                                 <tr>
-                                                    <td>{{ $rowIndex++ }}</td>
-                                                    <td>{{ $order->created_at->format('Y-M-d') }}</td>
+                                                    @if ($loop->first)
+                                                        <td rowspan="{{ $orderItemsCount }}">{{ $orderLoop->iteration }}
+                                                        </td>
+                                                        <td rowspan="{{ $orderItemsCount }}">{{ $order->order_number }}
+                                                        </td>
+                                                        <td rowspan="{{ $orderItemsCount }}">
+                                                            {{ $order->user->name ?? 'N/A' }}</td>
+                                                    @endif
+
+                                                    <td>{{ $item->product->name ?? 'N/A' }}</td>
+                                                    <td>{{ $item->quantity }}</td>
+                                                    <td>{{ number_format($item->price, 2) }}</td>
                                                     <td>
-                                                        <strong>Price:</strong> {{ $item->price }} <br>
-                                                        @if ($item->variant && $item->variant->attributes)
-                                                            @foreach ($item->variant->attributes as $variantAttribute)
-                                                                @php
-                                                                    $attributeName =
-                                                                        $variantAttribute->attribute->name ?? 'N/A';
-                                                                    $attributeValue =
-                                                                        $variantAttribute->values->value->name ?? 'N/A';
-                                                                @endphp
-                                                                <span>{{ $attributeName }}:
-                                                                    {{ $attributeValue }}</span><br>
+                                                        @if ($item->variant && $item->variant->attributes->count())
+                                                            @foreach ($item->variant->attributes as $attribute)
+                                                                <span class="badge bg-primary mb-1">
+                                                                    {{ $attribute->attribute->name ?? '' }}:
+                                                                    {{ $attribute->values->pluck('value.name')->implode(', ') }}
+                                                                </span><br>
                                                             @endforeach
                                                         @else
-                                                            <em>No variant attributes</em><br>
+                                                            <span class="text-muted">N/A</span>
                                                         @endif
                                                     </td>
-                                                    <td>
-                                                        @if ($order->status == 1)
-                                                            <span class="badge bg-warning">Pending</span>
-                                                        @elseif($order->status == 2)
-                                                            <span class="badge bg-info">Processing</span>
-                                                        @elseif ($order->status == 3)
-                                                            <span class="badge bg-danger">Cancelled</span>
-                                                        @else
-                                                            <span class="badge bg-success">Delivered</span>
-                                                        @endif
-                                                    </td>
-                                                    <td><a href="#" class="btn btn-primary btn-sm glow-btn">Delete</a>
-                                                    </td>
+
+                                                    @if ($loop->first)
+                                                        <td rowspan="{{ $orderItemsCount }}">
+                                                            @if ($order->status == 1)
+                                                                <span class="badge bg-warning">Pending</span>
+                                                            @elseif ($order->status == 2)
+                                                                <span class="badge bg-info">Processing</span>
+                                                            @elseif ($order->status == 3)
+                                                                <span class="badge bg-danger">Cancelled</span>
+                                                            @elseif($order->status == 4)
+                                                                <span class="badge bg-success">Delivered</span>
+                                                            @endif
+                                                        </td>
+                                                    @endif
                                                 </tr>
                                             @endforeach
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Wishlist Preview -->
-                <div class="mb-5">
-                    <h2 class="mb-4">Wishlist Preview</h2>
-                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
-                        @foreach ($wishlists as $wishlist)
-                            <div class="col">
-                                <div class="card h-100 shadow-sm">
-                                    <img src="{{ $wishlist->product->thumbnail }}" class="card-img-top"
-                                        alt="Wishlist Item 1">
-                                    <div class="card-body text-center">
-                                        <h5 class="card-title">Wishlist Item {{ $loop->iteration }}</h5>
-                                        <p class="card-text">{{ $wishlist->product->name }}</p>
-                                        <a href="{{ route('cart.store', $wishlist->product->id) }}"
-                                            class="btn btn-primary btn-sm glow-btn cart-icon">Add to Cart</a>
-                                    </div>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="8" class="text-center text-muted">No Order Found</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
-                        @endforeach
+                        </div>
                     </div>
-                </div>
 
-                <!-- Cart Preview -->
-                <div class="mb-5">
-                    <h2 class="mb-4">Cart Preview</h2>
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Cart Id</th>
-                                            <th>Product</th>
-                                            <th>Price</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($carts as $cart)
+
+                    <!-- Wishlist Preview -->
+                    <div class="mb-5">
+                        <h2 class="mb-4">Wishlist Preview</h2>
+                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+                            @foreach ($wishlists as $wishlist)
+                                <div class="col">
+                                    <div class="card h-100 shadow-sm">
+                                        <img src="{{ $wishlist->product->thumbnail }}" class="card-img-top"
+                                            alt="Wishlist Item 1">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">Wishlist Item {{ $loop->iteration }}</h5>
+                                            <p class="card-text">{{ $wishlist->product->name }}</p>
+                                            <a href="{{ route('cart.store', $wishlist->product->id) }}"
+                                                class="btn btn-primary btn-sm glow-btn cart-icon">Add to Cart</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Cart Preview -->
+                    <div class="mb-5">
+                        <h2 class="mb-4">Cart Preview</h2>
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
                                             <tr>
-                                                <td>{{ $loop->iteration }}</td>
-                                                <td>{{ $cart->product->name }}</td>
-                                                <td>{{ $cart->product->price }}</td>
-                                                <td><a href="{{ route('cart.destroy', $cart->id) }}"
-                                                        class="btn btn-danger btn-sm remove-cart"
-                                                        data-id="1">Remove</a></td>
+                                                <th>Cart Id</th>
+                                                <th>Product</th>
+                                                <th>Price</th>
+                                                <th>Action</th>
                                             </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($carts as $cart)
+                                                <tr>
+                                                    <td>{{ $loop->iteration }}</td>
+                                                    <td>{{ $cart->product->name }}</td>
+                                                    <td>{{ $cart->product->price }}</td>
+                                                    <td><a href="{{ route('cart.destroy', $cart->id) }}"
+                                                            class="btn btn-danger btn-sm remove-cart"
+                                                            data-id="1">Remove</a></td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
-    </div>
-@endsection
+    @endsection
 
 
 
-@push('scripts')
-    <script>
-        $(document).ready(function() {
-            // Initialize Toastr options
-            toastr.options = {
-                closeButton: true,
-                progressBar: true,
-                positionClass: 'toast-top-right',
-                timeOut: 3000
-            };
+    @push('scripts')
+        <script>
+            $(document).ready(function() {
+                // Initialize Toastr options
+                toastr.options = {
+                    closeButton: true,
+                    progressBar: true,
+                    positionClass: 'toast-top-right',
+                    timeOut: 3000
+                };
 
-            // Remove from Cart
-            $('.remove-cart').on('click', function(e) {
-                e.preventDefault();
-                const cartId = $(this).data('id');
-                $.ajax({
-                    url: '',
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        cart_id: cartId
-                    },
-                    success: function(response) {
-                        toastr.success('Item removed from cart!');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1000);
-                    },
-                    error: function() {
-                        toastr.error('Failed to remove item from cart.');
-                    }
+                // Remove from Cart
+                $('.remove-cart').on('click', function(e) {
+                    e.preventDefault();
+                    const cartId = $(this).data('id');
+                    $.ajax({
+                        url: '',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            cart_id: cartId
+                        },
+                        success: function(response) {
+                            toastr.success('Item removed from cart!');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        },
+                        error: function() {
+                            toastr.error('Failed to remove item from cart.');
+                        }
+                    });
+                });
+
+                // Add to Cart from Wishlist
+                $('.cart-icon').on('click', function(e) {
+                    e.preventDefault();
+                    const productId = $(this).data('id') || $(this).attr('href').split('/').pop();
+                    $.ajax({
+                        url: '',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            product_id: productId,
+                            quantity: 1
+                        },
+                        success: function(response) {
+                            toastr.success('Item added to cart!');
+                        },
+                        error: function() {
+                            toastr.error('Failed to add item to cart.');
+                        }
+                    });
                 });
             });
-
-            // Add to Cart from Wishlist
-            $('.cart-icon').on('click', function(e) {
-                e.preventDefault();
-                const productId = $(this).data('id') || $(this).attr('href').split('/').pop();
-                $.ajax({
-                    url: '',
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}',
-                        product_id: productId,
-                        quantity: 1
-                    },
-                    success: function(response) {
-                        toastr.success('Item added to cart!');
-                    },
-                    error: function() {
-                        toastr.error('Failed to add item to cart.');
-                    }
-                });
-            });
-        });
-    </script>
-@endpush
+        </script>
+    @endpush

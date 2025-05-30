@@ -11,46 +11,48 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index() {
+    public function index()
+    {
+        $orders = Order::with('orderItems', 'user', 'orderItems.variant', 'orderItems.variant.attributes', 'orderItems.variant.attributes.attribute', 'orderItems.variant.attributes.values', 'orderItems.variant.attributes.values.value')
+            ->where('user_id', auth()->user()->id)
+            ->select('id', 'order_number', 'phone_number', 'address', 'user_id', 'payment_type', 'status', 'created_at')
+            ->orderBy('id', 'desc')
+            ->take(10)
+            ->get();
 
-        $orders = Order::with('orderItems.variants', 'orderItems.variants.attributes.attribute', 'orderItems.variants.attributes.values.value')->where('user_id', auth()->user()->id)
-               ->select('id', 'user_id', 'status', 'created_at')
-               ->orderBy('id', 'desc')
-               ->get();
-
-            //    dd($orders->toArray());
+        //    dd($orders->toArray());
 
         $orderCount = $orders->count();
 
-       $wishlists = Wishlist::with(['product', 'productVariant'])->where('user_id', auth()->user()->id)
-       ->select('id', 'user_id', 'product_id', 'created_at')
-       ->get();
-       $wishlistCount = $wishlists->count();
+        $wishlists = Wishlist::with(['product', 'productVariant'])->where('user_id', auth()->user()->id)
+            ->select('id', 'user_id', 'product_id', 'created_at')
+            ->get();
+        $wishlistCount = $wishlists->count();
 
-       $carts = Cart::with('product')->where('user_id', auth()->user()->id)
-                ->select('id', 'user_id', 'product_id')->get();
-       $cartCount = $carts->count();
+        $carts = Cart::with('product')->where('user_id', auth()->user()->id)
+            ->select('id', 'user_id', 'product_id')->get();
+        $cartCount = $carts->count();
 
-       $user = auth()->user();
+        $user = auth()->user();
 
 
-       return view('frontend.dashboard', get_defined_vars());
+        return view('frontend.dashboard', get_defined_vars());
     }
 
-    public function orderTable(Request $request) {
+    public function orderTable(Request $request)
+    {
 
         $search = $request->input('search', '');
-        $perPage = $request->input('per_page', 50);
+        $perPage = $request->input('per_page', 20);
 
-        $orderItems = OrderItem::with(['order', 'product'])
-                  ->when($search, function ($query) use ($search) {
-                      $query->where('product_id', 'like', "%{$search}%")
-                        ->orwhere('order_id', 'like', "%{$search}%");
-                  })
-                  ->select('id', 'order_id', 'product_id', 'quantity', 'price', 'created_at')
-                  ->orderBy('id', 'desc')->paginate($perPage);
+        $orders = Order::with('orderItems', 'user', 'orderItems.variant', 'orderItems.variant.attributes', 'orderItems.variant.attributes.attribute', 'orderItems.variant.attributes.values', 'orderItems.variant.attributes.values.value')
+            ->when($search, function ($query) use ($search) {
+                $query->where('order_number', 'like', "%{$search}%");
+            })
+            ->select('id', 'order_number', 'phone_number', 'address', 'user_id', 'payment_type', 'status')
+            ->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
-        return view('frontend.orderlist', compact('orderItems'));
+
+        return view('frontend.orderlist', compact('orders'));
     }
-
 }

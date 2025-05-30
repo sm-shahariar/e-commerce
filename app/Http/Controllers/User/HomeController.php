@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Actions\FetchProduct;
+use App\Models\Category;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\VariantAttribute;
@@ -28,25 +29,11 @@ class HomeController extends Controller
             return view('frontend.partials.productCarts', compact('products'));
         }
 
-        $products = Product::with('category')->select('id', 'name', 'price', 'slug')->take(4)->get();
-        $newProducts = Product::with('category')->select('id', 'name', 'price')->orderBy('id', 'desc')->take(4)->get();
+        $categories = Category::with('products')->get();
+        $products = Product::with('category')->select('id', 'name', 'price', 'slug')->take(12)->get();
+        $newProducts = Product::with('category')->select('id', 'name', 'price')->orderBy('id', 'desc')->take(12)->get();
         $mostSoldProducts = Product::withCount('orderItems')->select('id', 'name', 'price')->take(4)->get();
-        $menProducts = Product::with('category')
-                    ->whereHas('category', function ($query) {
-                        $query->where('name', 'Men');
-                    })
-                    ->select('id', 'name', 'price')->take(4)->get();
-        $womenProducts = Product::with('category')
-                      ->whereHas('category', function ($query) {
-                        $query->where('name', 'Women');
-                      })
-                      ->select('id', 'name', 'price')->take(4)->get();
-
-        $kidProducts = Product::with('category')
-                    ->whereHas('category', function ($query) {
-                    $query->where('name', 'Kids');
-                    })
-                    ->select('id', 'name', 'price')->take(4)->get();
+        
 
         return view('frontend.home', get_defined_vars());
     }
@@ -102,6 +89,13 @@ class HomeController extends Controller
 
     }
 
+    // product by category
+    public function productByCategory($id) {
+        $category = Category::where('id', $id)->first();
+        // $categories = Category::all();
+        $products = Product::with('category')->where('category_id', $id)->get();
+        return view('frontend.product', compact('category', 'products'));
+    }
 
 
 

@@ -96,17 +96,17 @@
                             <ul class="d-flex">
                                 <li>
                                     <a href="javascript:void(0);" class="facebook-logo">
-                                        <img src="{{ URL::asset('/build/img/icons/facebook-logo.svg') }}" alt="Facebook">
+                                        <img src="" alt="Facebook">
                                     </a>
                                 </li>
                                 <li>
                                     <a href="javascript:void(0);">
-                                        <img src="{{ URL::asset('/build/img/icons/google.png') }}" alt="Google">
+                                        <img src="" alt="Google">
                                     </a>
                                 </li>
                                 <li>
                                     <a href="javascript:void(0);" class="apple-logo">
-                                        <img src="{{ URL::asset('/build/img/icons/apple-logo.svg') }}" alt="Apple">
+                                        <img src="" alt="Apple">
                                     </a>
                                 </li>
                             </ul>

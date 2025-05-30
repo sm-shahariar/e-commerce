@@ -11,7 +11,7 @@
                 </div>
                 <div class="col-md-4 text-md-end">
                     <span class="badge bg-light text-dark fs-5 p-3">
-                        <i class="fas fa-gift me-2"></i> 5 Items
+                        <i class="fas fa-gift me-2"></i> {{ \App\Services\WishlistService::getCount() }} Items
                     </span>
                 </div>
             </div>
@@ -25,7 +25,7 @@
             <div class="col-md-6">
                 <div class="filter-buttons">
                     <button class="btn btn-outline-primary active">All Items</button>
-                    <button class="btn btn-outline-secondary">On Sale</button>
+                    {{-- <button class="btn btn-outline-secondary">On Sale</button> --}}
                     <button class="btn btn-outline-success">In Stock</button>
                 </div>
             </div>
@@ -48,27 +48,56 @@
         <!-- Wishlist Items -->
         <div class="row">
             <!-- Item 1 -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card wishlist-card">
-                    <img src="https://via.placeholder.com/300x200?text=Product+1" class="card-img-top" alt="Product 1">
-                    <div class="card-body">
-                        <div class="wishlist-actions">
-                            <button class="btn btn-danger btn-sm mb-2" title="Remove">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            <button class="btn btn-primary btn-sm" title="Add to Cart">
-                                <i class="fas fa-shopping-cart"></i>
-                            </button>
-                        </div>
-                        <h5 class="card-title">Wireless Bluetooth Headphones</h5>
-                        <p class="card-text text-muted">Premium noise cancelling headphones with 30hr battery life</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="price">$129.99</span>
-                            <span class="badge bg-success">In Stock</span>
+            @if (!empty($wishlists))
+                @foreach ($wishlists as $wishlist)
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card wishlist-card">
+                            <img src="{{ $wishlist->product->thumbnail }}" class="card-img-top" alt="thumbnail">
+                            <div class="card-body">
+                                <div class="wishlist-actions" style="margin-top:65px;">
+                                    <form action="{{ route('cart.store', $wishlist->product->id) }}" method="POST"
+                                        class="cart-form" style="display:inline;">
+                                        @csrf
+                                        <input type="hidden" name="product_variant_id"
+                                            value="{{ $wishlist->product->variants->first()->id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Add to Cart">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                                <h5 class="card-title">{{ $wishlist->product->name }}</h5>
+                                <p class="card-text text-muted">{{ $wishlist->product->description }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="price">৳ {{ $wishlist->product->price }}</span>
+                                    <span class="badge bg-success" style="position:absolute; bottom:20px; left:260px">
+                                        @php
+                                            $inStock = $wishlist->product->variants->contains(function ($variant) {
+                                                return $variant->qty > 0;
+                                            });
+                                        @endphp
+                                        @if ($wishlist->product->variants->count() > 0)
+                                            @if ($inStock)
+                                                <span class="badge bg-success">In Stock</span>
+                                            @else
+                                                <span class="badge bg-danger">Out of Stock</span>
+                                            @endif
+                                        @endif
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                @endforeach
+            @endif
         </div>
+
+        <form action="{{ route('wishlist.destroy')}}" method="POST" class="mt-4">
+            @csrf
+            @method('DELETE')
+            <button class="btn btn-sm btn-outline-primary mb-2" title="Remove">
+                <span class="me-2 fs-5">Remove All Your Wishlist</span>
+                <i class="fas fa-trash fs-5"></i>
+            </button>
+        </form>
     </div>
 @endsection

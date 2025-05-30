@@ -24,4 +24,8 @@ class ProductVariant extends Model
     public function orderItems(){
         return $this->hasMany(OrderItem::class);
     }
+
+    public function wishlist(){
+        return $this->hasMany(Wishlist::class);
+    }
 }

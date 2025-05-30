@@ -23,9 +23,8 @@ class SearchController extends Controller
     // Products under matching categories
     $categoryMatches = Category::where('name', 'like', '%' . $query . '%')
         ->with(['products' => function($q) {
-            $q->limit(4);
+            $q->limit(12);
         }])
-        ->limit(2)
         ->get();
 
     $results = [];

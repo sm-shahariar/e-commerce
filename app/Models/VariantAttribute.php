@@ -8,7 +8,7 @@ class VariantAttribute extends Model
 {
     protected $guarded = [];
 
-    
+
     public function attribute(){
         return $this->belongsTo(Attribute::class);
     }
@@ -18,5 +18,5 @@ class VariantAttribute extends Model
         return $this->hasMany(VariantAttributeValue::class);
     }
 
-    
+
 }

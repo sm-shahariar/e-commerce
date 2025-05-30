@@ -16,12 +16,14 @@
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         Categories
                     </a>
-                    <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#"></a></li>
-                        
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">View All</a></li>
-                    </ul>
+                    {{-- if route home, cartlist, product details then show category dropdown --}}
+                    @if (Route::is('home') || Route::is('cart.list') || Route::is('product.details'))
+                        <ul class="dropdown-menu">
+                            @foreach ($categories as $category)
+                                <li><a class="dropdown-item" href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a></li>
+                            @endforeach
+                        </ul>
+                    @endif
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#">About</a>
@@ -36,9 +38,9 @@
                     @csrf
                     <div class="input-group" style="min-width: 300px;">
                         <input type="text" id="searchInput" class="form-control" placeholder="Search products or categories..." autocomplete="off">
-                        <button class="btn btn-outline-light" type="submit">
+                        {{-- <button class="btn btn-outline-light" type="submit">
                             <i class="fas fa-search"></i>
-                        </button>
+                        </button> --}}
                         <button id="closeSearch" class="btn btn-outline-light" type="button">
                             <i class="fas fa-times"></i>
                         </button>
@@ -50,7 +52,7 @@
                 <a href="#" class="btn btn-outline-light me-2" id="toggleSearch">
                     <i class="fas fa-search"></i>
                 </a>
-                
+
                 <!-- User Dropdown -->
                 <div class="dropdown me-2">
                     <a href="#" class="btn btn-outline-light dropdown-toggle" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -59,7 +61,7 @@
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         @auth
                             <li><h6 class="dropdown-header text-white">Welcome, {{ Auth::user()->name }}</h6></li>
-                            <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ route('user.dashboard') }}"><i class="fas fa-user-circle me-2"></i>Dashboard</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
@@ -75,12 +77,13 @@
                 </div>
 
                 <!-- wishlist button -->
-                <a href="{{ route('wishlist.index') }}" class="btn btn-outline-light me-2">
+                <a href="{{ route('wishlist.index') }}" class="btn btn-outline-light me-2 position-relative">
                     <i class="fas fa-heart"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="wishlist-count">
+                        {{ \App\Services\WishlistService::getCount() }}
                     </span>
                 </a>
-                
+
                 <!-- Cart Button -->
                 <a href="{{ route('cart.index') }}" class="btn btn-outline-light position-relative">
                     <i class="fas fa-shopping-cart"></i>
@@ -104,7 +107,7 @@
             $('#searchInput').focus();
             $(this).hide();
         });
-        
+
         // Close search form
         $('#closeSearch').on('click', function(e) {
             e.preventDefault();
@@ -113,11 +116,11 @@
             $('#toggleSearch').show();
             $('#searchInput').val('');
         });
-        
+
         // Live search functionality
         $('#searchInput').on('input', function() {
             const query = $(this).val().trim();
-            
+
             if (query.length > 2) {
                 $.ajax({
                     url: $('#searchForm').attr('action'),
@@ -126,14 +129,14 @@
                     success: function(response) {
                         let html = '';
                         let resultCount = response.results ? response.results.length : 0;
-                        
+
                         if (resultCount > 0) {
                             html = `<div class="search-results-container p-3">`;
-                            
+
                             let currentGroup = null;
                             let hasDirectMatches = false;
                             let hasCategoryProducts = false;
-                            
+
                             // First pass to determine what we have
                             response.results.forEach(item => {
                                 if (item.from_category) {
@@ -142,7 +145,7 @@
                                     hasDirectMatches = true;
                                 }
                             });
-                            
+
                             // Direct matches section
                             if (hasDirectMatches) {
                                 html += `
@@ -152,7 +155,7 @@
                                             Products matching "${query}"
                                         </h6>
                                         <div class="row g-2">`;
-                                
+
                                 response.results.forEach(item => {
                                     if (item.type === 'product' && !item.from_category) {
                                         html += `
@@ -160,8 +163,8 @@
                                                 <a href="/product/show/${item.slug}" class="text-decoration-none">
                                                     <div class="search-item p-2 rounded hover-bg">
                                                         <div class="d-flex align-items-center">
-                                                            <img src="${item.image_url || '/images/placeholder-product.png'}" 
-                                                                alt="${item.name}" class="me-3 rounded" 
+                                                            <img src="${item.image_url || '/images/placeholder-product.png'}"
+                                                                alt="${item.name}" class="me-3 rounded"
                                                                 style="width: 40px; height: 40px; object-fit: cover;">
                                                             <div class="flex-grow-1">
                                                                 <div class="product-name text-dark fw-medium">${item.name}</div>
@@ -176,27 +179,27 @@
                                             </div>`;
                                     }
                                 });
-                                
+
                                 html += `</div></div>`;
                             }
-                            
+
                             // Category products section
                             if (hasCategoryProducts) {
                                 let categoriesProcessed = [];
-                                
+
                                 html += `<div class="search-section">`;
-                                
+
                                 response.results.forEach(item => {
                                     if (item.from_category && !categoriesProcessed.includes(item.category_name)) {
                                         categoriesProcessed.push(item.category_name);
-                                        
+
                                         html += `
                                             <h6 class="search-section-header text-primary mt-3 mb-2">
                                                 <i class="fas fa-folder-open me-2"></i>
                                                 Products in "${item.category_name}"
                                             </h6>
                                             <div class="row g-2">`;
-                                        
+
                                         response.results.forEach(prod => {
                                             if (prod.from_category && prod.category_name === item.category_name) {
                                                 html += `
@@ -204,8 +207,8 @@
                                                         <a href="/products/${prod.id}" class="text-decoration-none">
                                                             <div class="search-item p-2 rounded hover-bg">
                                                                 <div class="d-flex align-items-center">
-                                                                    <img src="${prod.image_url || '/images/placeholder-product.png'}" 
-                                                                        alt="${prod.name}" class="me-3 rounded" 
+                                                                    <img src="${prod.image_url || '/images/placeholder-product.png'}"
+                                                                        alt="${prod.name}" class="me-3 rounded"
                                                                         style="width: 40px; height: 40px; object-fit: cover;">
                                                                     <div class="flex-grow-1">
                                                                         <div class="product-name text-dark fw-medium">${prod.name}</div>
@@ -220,14 +223,14 @@
                                                     </div>`;
                                             }
                                         });
-                                        
+
                                         html += `</div>`;
                                     }
                                 });
-                                
+
                                 html += `</div>`;
                             }
-                            
+
                             html += '</div>';
                         } else {
                             html = `
@@ -237,11 +240,11 @@
                                     <p class="small text-muted">Try different keywords or check spelling</p>
                                 </div>`;
                         }
-                        
+
                         // Calculate and set dynamic height
                         const $searchResults = $('#searchResults');
                         $searchResults.html(html).show();
-                        
+
                         // Set height based on result count
                         if (resultCount === 0) {
                             $searchResults.css({
@@ -281,14 +284,14 @@
                 $('#searchResults').hide();
             }
         });
-        
+
         // Hide results when clicking outside
         $(document).on('click', function(e) {
             if (!$(e.target).closest('#searchForm').length) {
                 $('#searchResults').hide();
             }
         });
-        
+
         // Prevent form submission
         $('#searchForm').on('submit', function(e) {
             e.preventDefault();
@@ -299,5 +302,5 @@
         });
     });
 </script>
-    
+
 @endpush

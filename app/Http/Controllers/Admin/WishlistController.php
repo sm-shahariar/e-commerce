@@ -8,53 +8,68 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class WishlistController extends Controller
 {
     public function index(Request $request)
     {
-        $wishlists = Wishlist::with('user', 'product')->select('user_id', 'product_id')->get();
+        $wishlists = Wishlist::with('user', 'product', 'product.variants', 'productVariant')->select('user_id', 'product_id')->get();
+
         return view('frontend.wishlist', compact('wishlists'));
     }
 
-    public function store(Request $request, Product $product) {
+    public function store(Request $request, $productId)
+    {
 
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'product_id' => 'required|exists:products,id',
-            
-        ]);
+        try {
 
-        try{
-            DB::beginTransaction();
-
-            $wishlist = Wishlist::create([
-                'user_id' => $request->user_id,
-                'product_id' => $product->id,
+            $request->validate([
+                'product_variant_id' => 'required|exists:product_variants,id',
             ]);
 
-            DB::commit();
-            return redirect()->back()->with('success', 'Product added to wishlist successfully');
+            DB::beginTransaction();
 
-        }catch(\Throwable $th) {
+            $product = Product::with('variants')->findOrFail($productId);
+
+            $variantId = $request->input('product_variant_id');
+
+            if (Auth::check()) {
+
+                $userId = Auth::user()->id;
+
+                $wishlist = Wishlist::create([
+                    'user_id' => $userId,
+                    'product_id' => $product->id,
+                    'product_variant_id' => $variantId
+                ]);
+                // dd($wishlist->toArray());
+            } else {
+                return redirect()->back()->with('error', 'Please login first');
+            }
+
+            DB::commit();
+
+            return redirect()->route('wishlist.index')->with('success', 'Product added to wishlist successfully');
+        } catch (\Throwable $th) {
             DB::rollback();
+            \Log::error("Error") . $th->getMessage();
             return redirect()->back()->with('error', $th->getMessage());
         }
     }
 
-   // In WishlistController.php
+    // In WishlistController.php
     public function destroy()
-{
-    Wishlist::where('user_id', auth()->id())->delete();
+    {
+        Wishlist::where('user_id', auth()->id())->delete();
 
-    if (request()->ajax()) {
-        return response()->json([
-            'message' => 'All wishlist items removed'
-        ], 200);
+        if (request()->ajax()) {
+            return response()->json([
+                'message' => 'All wishlist items removed'
+            ], 200);
+        }
+
+        return redirect()->back()->with('success', 'All wishlist items removed');
     }
-
-    return redirect()->back()->with('success', 'All wishlist items removed');
-}
-
-
+    
 }

@@ -285,7 +285,7 @@
             e.preventDefault();
             let SubmitBtn = $('#submit_product_btn');
             let formData = new FormData(this);
-            
+
             // Compare and validate purchase and selling prices
             let purchasePrice = parseFloat(formData.get('purchase_price'));
             let salePrice = parseFloat(formData.get('sale_price'));
@@ -294,7 +294,7 @@
                 SubmitBtn.prop('disabled', false);
                 return;
             }
-            
+
             $.ajax({
                 type: $(this).attr('method'),
                 url: $(this).attr('action'),
